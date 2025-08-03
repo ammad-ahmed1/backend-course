@@ -1,0 +1,18 @@
+<h1>My Products</h1>
+
+{{#if prods.length}}
+  <div class="product-grid">
+    {{#each prods}}
+      <div class="product-card">
+        <img
+          src="https://picsum.photos/300/200?random={{@index}}"
+          alt="{{this.title}}"
+        />
+        <h2>{{this.title}}</h2>
+        <p class="price">$100</p>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  <p>No products available yet.</p>
+{{/if}}

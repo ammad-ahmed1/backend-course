@@ -1,0 +1,22 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title #{pageTitle}
+    link(rel="stylesheet", href="/css/main.css")
+    // ✅ Load extra CSS files dynamically
+    if extraCss
+      each cssFile in extraCss
+        link(rel="stylesheet", href=cssFile)
+    // ✅ Allow pages to add more CSS manually if needed
+    block extraCSS
+  body
+    header
+      nav
+        ul
+          li
+            a(href="/admin/add-product", class=(activePage === 'add' ? 'active' : '')) Add Product
+          li
+            a(href="/shop", class=(activePage === 'shop' ? 'active' : '')) Shop
+    main
+      block content
