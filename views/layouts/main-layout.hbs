@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{pageTitle}}</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    {{#if extraCss}}
+      {{#each extraCss}}
+        <link rel="stylesheet" href="{{this}}" />
+      {{/each}}
+    {{/if}}
+  </head>
+  <body>
+    {{> header}}
+    <main>
+      {{{body}}}
+    </main>
+  </body>
+</html>

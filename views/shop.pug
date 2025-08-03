@@ -1,0 +1,13 @@
+extends layouts/main-layout
+
+block content
+  h1 My Products
+  if prods.length
+    .product-grid
+      each product in prods
+        .product-card
+          img(src=`https://picsum.photos/300/200?random=${Math.floor(Math.random()*1000)}`, alt=product.title)
+          h2= product.title
+          p.price $#{product.price}
+  else
+    p No products available yet.
