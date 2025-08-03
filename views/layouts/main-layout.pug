@@ -18,5 +18,13 @@ html(lang="en")
             a(href="/admin/add-product", class=(activePage === 'add' ? 'active' : '')) Add Product
           li
             a(href="/shop", class=(activePage === 'shop' ? 'active' : '')) Shop
+          li
+            a(href="/shop/cart", class=(activePage === 'cart' ? 'active' : '')) Cart
+          li
+            a(href="/shop/checkout", class=(activePage === 'checkout' ? 'active' : '')) Checkout 
+          li
+            a(href="/shop/product-detail", class=(activePage === 'product-detail' ? 'active' : '')) Product Detail 
+           
+           
     main
       block content
