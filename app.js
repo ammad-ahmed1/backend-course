@@ -4,8 +4,10 @@ const expressHbs = require("express-handlebars");
 
 const express = require("express");
 
-const adminData = require("./routes/admin");
+const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
+
+const errorController = require("./controllers/error");
 
 const path = require("path");
 
@@ -17,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/admin", adminData.routes);
+app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 
 app.engine(
@@ -40,10 +42,7 @@ app.set("views", "views");
 
 // Custom helper for active link
 
-app.use((req, res, next) => {
-  // res.sendFile(path.join(rootDir, "views", "404.html"));
-  res.status(404).render("404", { pageTitle: "Page Not Found" });
-});
+app.use(errorController.get404);
 
 const server = http.createServer(app);
 
