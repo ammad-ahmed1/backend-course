@@ -1,0 +1,32 @@
+<h1>My Orders</h1>
+
+{{#if orders.length}}
+  <div class="orders-container">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each orders}}
+          <tr>
+            <td>#{{this.id}}</td>
+            <td>{{this.date}}</td>
+            <td>
+              <span class="status {{this.status}}">
+                {{this.status}}
+              </span>
+            </td>
+            <td>${{this.total}}</td>
+            <td>
+              <button class="btn-view">View</button>
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>

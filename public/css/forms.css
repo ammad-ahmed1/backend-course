@@ -1,9 +1,4 @@
-@import url("main.css");
-
-main h1 {
-  color: #2c3e50;
-}
-
+/* Form */
 form {
   display: flex;
   flex-direction: column;
@@ -13,6 +8,7 @@ form {
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 form label {
@@ -20,11 +16,13 @@ form label {
   margin-bottom: 8px;
 }
 
-form input {
+form input,
+form textarea {
   padding: 10px;
   margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  width: 100%;
 }
 
 form button {

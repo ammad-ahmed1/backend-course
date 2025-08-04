@@ -4,12 +4,14 @@
   <div class="product-grid">
     {{#each prods}}
       <div class="product-card">
-        <img
-          src="https://picsum.photos/300/200?random={{@index}}"
-          alt="{{this.title}}"
-        />
-        <h2>{{this.title}}</h2>
-        <p class="price">$100</p>
+        <img src="{{this.image}}" alt="{{this.title}}" />
+        <div class="product-details">
+          <h2>{{this.title}}</h2>
+          <p class="description">{{this.description}}</p>
+          <p class="price">${{this.price}}</p>
+          <button class="btn-edit">Edit</button>
+          <button class="btn-delete">Delete</button>
+        </div>
       </div>
     {{/each}}
   </div>

@@ -15,14 +15,12 @@ exports.getProducts = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
+  console.log("I am called!!!!!!!!");
   Product.fetchAll((products) => {
     res.render("shop/index", {
       prods: products,
       pageTitle: "Shop",
       path: "/",
-      activePage: "shop",
-      extraCss: ["/css/product.css"],
-      docTitle: "Shop",
     });
   });
 };
@@ -32,9 +30,7 @@ exports.getCart = (req, res, next) => {
     res.render("shop/cart", {
       pageTitle: "Your Cart",
       path: "/cart",
-      activePage: "cart",
-      // extraCss: ["/css/product.css"],
-      // docTitle: "Shop",
+      extraCss: ["/css/cart.css"],
     });
   });
 };
@@ -43,9 +39,16 @@ exports.getCheckout = (req, res, next) => {
     res.render("shop/checkout", {
       pageTitle: "Checkout",
       path: "/checkout",
-      activePage: "checkout",
-      // extraCss: ["/css/product.css"],
-      // docTitle: "Shop",
+      extraCss: ["/css/checkout.css"],
+    });
+  });
+};
+exports.getOrders = (req, res, next) => {
+  Product.fetchAll((products) => {
+    res.render("shop/orders", {
+      pageTitle: "Your Orders",
+      path: "/orders",
+      extraCss: ["/css/orders.css"],
     });
   });
 };
