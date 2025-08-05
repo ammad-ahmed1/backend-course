@@ -1,15 +1,13 @@
-<h1>My Products</h1>
+<h1>Shop Products</h1>
 
 {{#if prods.length}}
   <div class="product-grid">
     {{#each prods}}
       <div class="product-card">
-        <img
-          src="https://picsum.photos/300/200?random={{@index}}"
-          alt="{{this.title}}"
-        />
+        <img src={{this.imageUrl}} alt="{{this.title}}" />
         <h2>{{this.title}}</h2>
-        <p class="price">$100</p>
+        <p class="price">{{this.price}}</p>
+
       </div>
     {{/each}}
   </div>

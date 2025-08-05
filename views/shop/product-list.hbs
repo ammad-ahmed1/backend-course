@@ -1,17 +1,13 @@
-<h1>My Products</h1>
+<h1>Shop Products</h1>
 
 {{#if prods.length}}
   <div class="product-grid">
     {{#each prods}}
       <div class="product-card">
-        <img src="{{this.image}}" alt="{{this.title}}" />
-        <div class="product-details">
-          <h2>{{this.title}}</h2>
-          <p class="description">{{this.description}}</p>
-          <p class="price">${{this.price}}</p>
-          <button class="btn-edit">Edit</button>
-          <button class="btn-delete">Delete</button>
-        </div>
+        <img src={{this.imageUrl}} alt="{{this.title}}" />
+        <h2>{{this.title}}</h2>
+        <p class="price">{{this.price}}</p>
+
       </div>
     {{/each}}
   </div>

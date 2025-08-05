@@ -57,3 +57,37 @@ main h1 {
   color: #1abc9c;
   font-weight: bold;
 }
+.product-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.product-actions a {
+  display: inline-block;
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 5px;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+/* Edit button */
+.btn-edit {
+  background-color: #3498db;
+}
+
+.btn-edit:hover {
+  background-color: #2980b9;
+}
+
+/* Delete button */
+.btn-delete {
+  background-color: #e74c3c;
+}
+
+.btn-delete:hover {
+  background-color: #c0392b;
+}
