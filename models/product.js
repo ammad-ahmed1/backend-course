@@ -17,7 +17,8 @@ const getProductsFromFile = (cb) => {
 };
 
 module.exports = class Product {
-  constructor(title, imageUrl, description, price) {
+  constructor(id, title, imageUrl, description, price) {
+    this.id = null;
     this.title = title;
     this.imageUrl = imageUrl;
     this.description = description;
@@ -25,6 +26,7 @@ module.exports = class Product {
   }
 
   save() {
+    this.id = Math.random().toString();
     getProductsFromFile((products) => {
       products.push(this);
       fs.writeFile(p, JSON.stringify(products), (err) => {
@@ -35,5 +37,13 @@ module.exports = class Product {
 
   static fetchAll(cb) {
     getProductsFromFile(cb);
+  }
+  static findById(id, cb) {
+    console.log("modal function find by id called");
+    getProductsFromFile((products) => {
+      const product = products.find((p) => p.id == id);
+      console.log(product, ".......found by id");
+      cb(product);
+    });
   }
 };
