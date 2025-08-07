@@ -30,7 +30,10 @@
             </td>
             <td>${{multiply this.price this.quantity}}</td>
             <td>
-              <button class="btn-remove">Remove</button>
+              <form action="/shop/cart-delete-item" method="POST">
+                <input type="hidden" name="productId" value="{{this.id}}" />
+                <button type="submit" class="btn-remove">Remove</button>
+              </form>
             </td>
           </tr>
         {{/each}}

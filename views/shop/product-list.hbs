@@ -11,10 +11,7 @@
         <div class="product-actions">
           <a href="/shop/products/{{this.id}}" class="btn-details">🔍 View
             Details</a>
-          <form action="/cart" method="POST">
-            <input type="hidden" name="productId" value="{{this.id}}" />
-            <button type="submit" class="btn-cart">🛒 Add to Cart</button>
-          </form>
+          {{> add-to-cart product=this }}
         </div>
       </div>
     {{/each}}
