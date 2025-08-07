@@ -7,11 +7,7 @@
       <h1>{{product.title}}</h1>
       <p class="price">$ {{product.price}}</p>
       <p class="description">{{product.description}}</p>
-
-      <form action="/cart" method="POST">
-        <input type="hidden" name="productId" value="{{product.id}}" />
-        <button type="submit" class="btn-add-cart">🛒 Add to Cart</button>
-      </form>
+      {{> add-to-cart product=this }}
     </div>
   </div>
 </div>

@@ -1,0 +1,61 @@
+<h1>{{#if editing}}Edit Product{{else}}Add a New Product{{/if}}</h1>
+
+<form
+  action="{{#if editing}}/admin/edit-product{{else}}/admin/add-product{{/if}}"
+  method="POST"
+>
+  {{#if editing}}
+    <input type="hidden" name="productId" value="{{product.id}}" />
+  {{/if}}
+
+  <label for="title">Product Title:</label>
+  <input
+    type="text"
+    id="title"
+    name="title"
+    value="{{#if editing}}{{product.title}}{{/if}}"
+    required
+  />
+
+  <div>
+    <label for="image">Product Image URL:</label>
+    <input
+      type="text"
+      id="image"
+      name="imageUrl"
+      value="{{#if editing}}{{product.imageUrl}}{{/if}}"
+      placeholder="Enter image URL"
+      required
+    />
+  </div>
+
+  <div>
+    <label for="description">Product Description:</label>
+    <textarea
+      id="description"
+      name="description"
+      rows="4"
+      placeholder="Enter product details"
+      required
+    >{{#if editing}}{{product.description}}{{/if}}</textarea>
+  </div>
+
+  <div>
+    <label for="price">Product Price ($):</label>
+    <input
+      type="number"
+      id="price"
+      name="price"
+      step="0.01"
+      value="{{#if editing}}{{product.price}}{{/if}}"
+      placeholder="Enter price"
+      required
+    />
+  </div>
+  {{#if editing}}
+  <input type = "hidden" value="{{product.id}}" name = "productId" /> 
+  {{/if}}
+  <button type="submit">
+    {{#if editing}}Update Product{{else}}Add Product{{/if}}
+  </button>
+</form>

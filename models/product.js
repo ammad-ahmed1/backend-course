@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 
+const Cart = require("./cart");
+
 const p = path.join(
   path.dirname(process.mainModule.filename),
   "data",
@@ -18,7 +20,7 @@ const getProductsFromFile = (cb) => {
 
 module.exports = class Product {
   constructor(id, title, imageUrl, description, price) {
-    this.id = null;
+    this.id = id;
     this.title = title;
     this.imageUrl = imageUrl;
     this.description = description;
@@ -26,12 +28,27 @@ module.exports = class Product {
   }
 
   save() {
-    this.id = Math.random().toString();
     getProductsFromFile((products) => {
-      products.push(this);
-      fs.writeFile(p, JSON.stringify(products), (err) => {
-        console.log(err);
-      });
+      if (this.id) {
+        const existingProduct = products?.findIndex(
+          (prod) => prod.id == this.id[0]
+        );
+        const updatedProductsArray = [...products];
+
+        updatedProductsArray[existingProduct] = this;
+
+        fs.writeFile(p, JSON.stringify(updatedProductsArray), (err) => {
+          console.log(err);
+        });
+      } else {
+        this.id = Math.random().toString();
+        getProductsFromFile((products) => {
+          products.push(this);
+          fs.writeFile(p, JSON.stringify(products), (err) => {
+            console.log(err);
+          });
+        });
+      }
     });
   }
 
@@ -39,11 +56,20 @@ module.exports = class Product {
     getProductsFromFile(cb);
   }
   static findById(id, cb) {
-    console.log("modal function find by id called");
     getProductsFromFile((products) => {
-      const product = products.find((p) => p.id == id);
-      console.log(product, ".......found by id");
+      const product = products.find((p) => p?.id == id);
       cb(product);
+    });
+  }
+  static deleteById(id) {
+    getProductsFromFile((products) => {
+      const product = products.find((prod) => prod.id == id);
+      const updatedProducts = products.filter((prod) => prod.id !== id);
+      fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
+        if (!err) {
+          Cart.deleteProduct(id, product?.price);
+        }
+      });
     });
   }
 };

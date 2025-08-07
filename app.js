@@ -26,16 +26,19 @@ app.engine(
   "hbs",
   expressHbs({
     layoutsDir: "views/layouts",
+    // partialsDir: path.join(__dirname, "views", "includes"),
     defaultLayout: "main-layout",
     extname: "hbs",
-    partialsDir: "views/partials",
+    partialsDir: ["views/partials", "views/includes"],
     helpers: {
       ifEquals: function (arg1, arg2, options) {
         return arg1 === arg2 ? options.fn(this) : options.inverse(this);
       },
+      multiply: (a, b) => (parseFloat(a) * parseFloat(b)).toFixed(2),
     },
   })
 ); //this function will initialize handlebars and named as hbs
+//set views and view engine
 // app.set("view engine", "pug"); //if want to use pug
 app.set("view engine", "hbs"); //if want to use handlebars
 app.set("views", "views");
