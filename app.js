@@ -15,14 +15,32 @@ const path = require("path");
 
 const app = express();
 
+const Handlebars = require("handlebars");
+
 const rootDir = require("./utils/path");
+const sequelize = require("./utils/database");
+
+const Product = require("./models/product");
+const User = require("./models/user");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use((req, res, next) => {
+  User.findByPk(1)
+    .then((user) => {
+      req.user = user;
+      next();
+    })
+    .catch((err) => console.log(err));
+});
+
 app.use("/admin", adminRoutes);
 app.use("/shop", shopRoutes);
+const {
+  allowInsecurePrototypeAccess,
+} = require("@handlebars/allow-prototype-access");
 
 app.engine(
   "hbs",
@@ -31,6 +49,8 @@ app.engine(
     // partialsDir: path.join(__dirname, "views", "includes"),
     defaultLayout: "main-layout",
     extname: "hbs",
+    extname: "hbs",
+    handlebars: allowInsecurePrototypeAccess(Handlebars),
     partialsDir: ["views/partials", "views/includes"],
     helpers: {
       ifEquals: function (arg1, arg2, options) {
@@ -42,6 +62,7 @@ app.engine(
 ); //this function will initialize handlebars and named as hbs
 //set views and view engine
 // app.set("view engine", "pug"); //if want to use pug
+
 app.set("view engine", "hbs"); //if want to use handlebars
 app.set("views", "views");
 
@@ -49,6 +70,26 @@ app.set("views", "views");
 
 app.use(errorController.get404);
 
-const server = http.createServer(app);
+Product.belongsTo(User, { constrains: true, onDelete: "CASCADE" });
+User.hasMany(Product);
 
-server.listen(3000);
+sequelize
+  .sync()
+  .then((result) => {
+    return User.findByPk(1);
+  })
+  .then((user) => {
+    if (!user) {
+      return User.create({ username: "Max", email: "test@test.com" });
+    }
+    return user;
+  })
+  .then((user) => {
+    // console.log(user);
+    server.listen(3000);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+const server = http.createServer(app);
