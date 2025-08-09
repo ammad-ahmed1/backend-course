@@ -9,6 +9,8 @@ const shopRoutes = require("./routes/shop");
 
 const errorController = require("./controllers/error");
 
+const db = require("./utils/database");
+
 const path = require("path");
 
 const app = express();

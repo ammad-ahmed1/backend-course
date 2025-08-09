@@ -18,8 +18,14 @@ exports.postAddProduct = (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
   const product = new Product(null, title, imageUrl, description, price);
-  product.save();
-  res.redirect("/admin/products");
+  product
+    .save()
+    .then(() => {
+      res.redirect("/shop/products");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 exports.getEditProduct = (req, res, next) => {
   //get product page
@@ -74,7 +80,6 @@ exports.getProducts = (req, res, next) => {
 };
 
 exports.postDeleteProduct = (req, res, next) => {
-  console.log("Delete me: ", req.body);
   Product.deleteById(req.body.productId);
   res.redirect("/");
 };
