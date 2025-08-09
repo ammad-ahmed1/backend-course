@@ -59,35 +59,24 @@ main h1 {
 }
 .product-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 15px;
 }
 
-.product-actions a {
-  display: inline-block;
-  padding: 8px 14px;
+.product-actions a,
+.product-actions button {
+  flex: 1;
+  padding: 10px 0;
   font-size: 14px;
-  border-radius: 5px;
+  border-radius: 6px;
   text-decoration: none;
   color: white;
-  font-weight: bold;
-  transition: background 0.3s ease;
-}
-
-/* Edit button */
-.btn-edit {
-  background-color: #3498db;
-}
-
-.btn-edit:hover {
-  background-color: #2980b9;
-}
-
-/* Delete button */
-.btn-delete {
-  background-color: #e74c3c;
-}
-
-.btn-delete:hover {
-  background-color: #c0392b;
+  font-weight: 500;
+  background-color: #555;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  text-align: center;
 }
