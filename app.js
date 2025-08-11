@@ -1,45 +1,43 @@
+const path = require("path");
+
 const http = require("http");
+
+const express = require("express");
 const bodyParser = require("body-parser");
 const expressHbs = require("express-handlebars");
 
-const express = require("express");
+const errorController = require("./controllers/error");
+const { mongoConnect } = require("./utils/database");
+const User = require("./models/user");
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 
-const errorController = require("./controllers/error");
-
 const db = require("./utils/database");
-
-const path = require("path");
 
 const app = express();
 
 const Handlebars = require("handlebars");
 
 const rootDir = require("./utils/path");
-const sequelize = require("./utils/database");
-
-const Product = require("./models/product");
-const User = require("./models/user");
-const Cart = require("./models/cart");
-const CartItem = require("./models/cart-item");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
-  User.findByPk(1)
+  User.findById("689a70d80af75b1ac1494dac")
     .then((user) => {
       req.user = user;
       next();
     })
     .catch((err) => console.log(err));
+  next();
 });
 
 app.use("/admin", adminRoutes);
 app.use("/shop", shopRoutes);
+
 const {
   allowInsecurePrototypeAccess,
 } = require("@handlebars/allow-prototype-access");
@@ -72,33 +70,10 @@ app.set("views", "views");
 
 app.use(errorController.get404);
 
-Product.belongsTo(User, { constrains: true, onDelete: "CASCADE" });
-User.hasMany(Product);
-User.hasOne(Cart);
-Cart.belongsTo(User);
-Cart.belongsToMany(Product, { through: CartItem });
-Product.belongsToMany(Cart, { through: CartItem });
+mongoConnect((client) => {
+  // console.log(client);
 
-sequelize
-  .sync({ alter: true })
-  .then((result) => {
-    return User.findByPk(1);
-  })
-  .then((user) => {
-    if (!user) {
-      return User.create({ username: "Max", email: "test@test.com" });
-    }
-    return user;
-  })
-  .then((user) => {
-    // console.log(user);
-    return user.createCart();
-  })
-  .then((user) => {
-    server.listen(3000);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+  app.listen(3000);
+});
 
 const server = http.createServer(app);

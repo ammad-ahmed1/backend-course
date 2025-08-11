@@ -1,17 +1,23 @@
-//id name email psw
-const Sequelize = require("sequelize");
+const mongodb = require("mongodb");
+const getDb = require("../utils/database").getDb;
+const ObjectId = mongodb.ObjectId;
 
-const sequelize = require("../utils/database");
+class User {
+  constructor(username, email) {
+    this.name = username;
+    this.email = email;
+  }
 
-const User = sequelize.define("user", {
-  id: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true,
-    allowNull: false,
-    primaryKey: true,
-  },
-  username: Sequelize.STRING,
-  email: Sequelize.STRING,
-});
+  save() {
+    const db = getDb();
+    db.collection("users").insertOne(this);
+  }
 
-module.exports = User;
+  static findById(userId) {
+    const db = getDb();
+    return db
+      .collection("users")
+      .findOne({ _id: new ObjectId(prodId) })
+      .next();
+  }
+}
