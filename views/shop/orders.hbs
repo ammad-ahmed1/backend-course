@@ -6,27 +6,23 @@
       <thead>
         <tr>
           <th>Order ID</th>
-          <th>Date</th>
-          <th>Status</th>
-          <th>Total</th>
-          <th>Action</th>
+          <th>Product(s)</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>User</th>
         </tr>
       </thead>
       <tbody>
         {{#each orders}}
-          <tr>
-            <td>#{{this.id}}</td>
-            <td>{{this.date}}</td>
-            <td>
-              <span class="status {{this.status}}">
-                {{this.status}}
-              </span>
-            </td>
-            <td>${{this.total}}</td>
-            <td>
-              <button class="btn-view">View</button>
-            </td>
-          </tr>
+          {{#each this.items}}
+            <tr>
+              <td>{{../_id}}</td>
+              <td>{{title}}</td>
+              <td>{{quantity}}</td>
+              <td>${{price}}</td>
+              <td>{{../user.name}} ({{../user.email}})</td>
+            </tr>
+          {{/each}}
         {{/each}}
       </tbody>
     </table>

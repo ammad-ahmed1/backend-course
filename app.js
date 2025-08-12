@@ -1,3 +1,5 @@
+const mongodb = require("mongodb");
+
 const path = require("path");
 
 const http = require("http");
@@ -9,6 +11,8 @@ const expressHbs = require("express-handlebars");
 const errorController = require("./controllers/error");
 const { mongoConnect } = require("./utils/database");
 const User = require("./models/user");
+
+const ObjectId = mongodb.ObjectId;
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
@@ -26,13 +30,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
-  User.findById("689a70d80af75b1ac1494dac")
+  User.findById("689b6b301feef28a649d41c2")
     .then((user) => {
       req.user = user;
+      req.user = new User(user?.name, user?.email, user?.cart, user?._id);
       next();
     })
     .catch((err) => console.log(err));
-  next();
 });
 
 app.use("/admin", adminRoutes);
@@ -71,8 +75,6 @@ app.set("views", "views");
 app.use(errorController.get404);
 
 mongoConnect((client) => {
-  // console.log(client);
-
   app.listen(3000);
 });
 
