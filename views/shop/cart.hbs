@@ -1,6 +1,6 @@
 <h1>My Cart</h1>
 
-{{#if cartItems.length}}
+{{#if products.length}}
   <div class="cart-container">
     <table class="cart-table">
       <thead>
@@ -13,10 +13,10 @@
         </tr>
       </thead>
       <tbody>
-        {{#each cartItems}}
+        {{#each products}}
           <tr>
             <td class="product-info">
-              <img src="{{this.image}}" alt="{{this.title}}" />
+              <img src="{{this.imageUrl}}" alt="{{this.title}}" />
               <span>{{this.title}}</span>
             </td>
             <td>${{this.price}}</td>
@@ -31,7 +31,7 @@
             <td>${{multiply this.price this.quantity}}</td>
             <td>
               <form action="/shop/cart-delete-item" method="POST">
-                <input type="hidden" name="productId" value="{{this.id}}" />
+                <input type="hidden" name="productId" value="{{this._id}}" />
                 <button type="submit" class="btn-remove">Remove</button>
               </form>
             </td>
@@ -42,7 +42,9 @@
 
     <div class="cart-summary">
       <p><strong>Subtotal:</strong> ${{cartTotal}}</p>
-      <button class="btn-checkout">Proceed to Checkout</button>
+      <form action="/shop/create-order" method="POST">
+        <button type="submit" class="btn-checkout">Proceed to Checkout</button>
+      </form>
     </div>
   </div>
 {{else}}

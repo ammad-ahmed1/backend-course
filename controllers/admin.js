@@ -15,7 +15,14 @@ exports.getAddProduct = (req, res) => {
 // CREATE handler
 exports.postAddProduct = (req, res) => {
   const { title, imageUrl, price, description } = req.body;
-  const product = new Product(title, price, description, imageUrl);
+  const product = new Product(
+    title,
+    price,
+    description,
+    imageUrl,
+    null,
+    req.user._id
+  );
   product
     .save()
     .then(() => res.redirect("/admin/products"))
