@@ -9,7 +9,6 @@ const mongoConnect = (callback) => {
   )
     .then((client) => {
       console.log("Connected!");
-      // console.log(client);
       _db = client.db();
       callback();
     })
@@ -21,7 +20,7 @@ const mongoConnect = (callback) => {
 
 const getDb = () => {
   if (_db) {
-    console.log(_db);
+    // console.log(_db);
     return _db;
   }
   throw "No db found!";
