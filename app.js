@@ -6,18 +6,16 @@ const http = require("http");
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 const expressHbs = require("express-handlebars");
 
 const errorController = require("./controllers/error");
-const { mongoConnect } = require("./utils/database");
 const User = require("./models/user");
 
 const ObjectId = mongodb.ObjectId;
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
-
-const db = require("./utils/database");
 
 const app = express();
 
@@ -30,10 +28,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
-  User.findById("689b6b301feef28a649d41c2")
+  User.findById("689e6030f5c81aea57d122c5")
     .then((user) => {
       req.user = user;
-      req.user = new User(user?.name, user?.email, user?.cart, user?._id);
+      // req.user = new User(user?.name, user?.email, user?.cart, user?._id);
       next();
     })
     .catch((err) => console.log(err));
@@ -74,8 +72,29 @@ app.set("views", "views");
 
 app.use(errorController.get404);
 
-mongoConnect((client) => {
-  app.listen(3000);
-});
+mongoose
+  .connect(
+    "mongodb+srv://iammadmughal480:uEmigj2ZqOyjg01T@cluster0.qgsvy6q.mongodb.net/"
+  )
+  .then((result) => {
+    console.log("connected");
+    User.findOne()
+      .then((user) => {
+        if (!user) {
+          const user = new User({
+            name: "Max",
+            email: "max@test.com",
+            cart: {
+              items: [],
+            },
+          });
+          user.save();
+        }
+      })
+      .catch((err) => console.log(err));
+
+    app.listen(3000);
+  })
+  .catch((err) => console.log(err));
 
 const server = http.createServer(app);

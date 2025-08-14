@@ -16,10 +16,13 @@
         {{#each products}}
           <tr>
             <td class="product-info">
-              <img src="{{this.imageUrl}}" alt="{{this.title}}" />
-              <span>{{this.title}}</span>
+              <img
+                src="{{this.productId.imageUrl}}"
+                alt="{{this.productId.title}}"
+              />
+              <span>{{this.productId.title}}</span>
             </td>
-            <td>${{this.price}}</td>
+            <span>{{this.productId.title}}</span>
             <td>
               <input
                 type="number"
@@ -28,7 +31,7 @@
                 class="quantity-input"
               />
             </td>
-            <td>${{multiply this.price this.quantity}}</td>
+            <span>{{this.productId.title}}</span>
             <td>
               <form action="/shop/cart-delete-item" method="POST">
                 <input type="hidden" name="productId" value="{{this._id}}" />

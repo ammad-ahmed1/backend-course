@@ -2,7 +2,8 @@ const Product = require("../models/product");
 
 // GET /products
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
+    .populate("userId", "name")
     .then((products) => {
       res.render("shop/product-list", {
         prods: products,
@@ -34,7 +35,7 @@ exports.getProduct = (req, res, next) => {
 
 // GET /
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render("shop/index", {
         prods: products,
@@ -50,8 +51,9 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
   req.user
-    .getCart()
-    .then((products) => {
+    .populate("cart.items.productId")
+    .then((user) => {
+      const products = user.cart.items;
       console.log(products);
       res.render("shop/cart", {
         path: "/cart",
@@ -92,28 +94,12 @@ exports.postDeleteCart = (req, res, next) => {
 
 // GET /orders
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
-    .then((orders) => {
-      res.render("shop/orders", {
-        pageTitle: "Your Orders",
-        path: "/orders",
-        orders: orders,
-        extraCss: ["/css/orders.css"], // CSS added here
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  res.render("shop/orders", {
+    pageTitle: "Your Orders",
+    path: "/orders",
+    extraCss: ["/css/orders.css"], // CSS added here
+  });
 };
 
 // POST orders
-exports.postOrder = (req, res, next) => {
-  let fetchedCard;
-  req.user
-    .addOrder()
-    .then((result) => {
-      res.redirect("/shop/orders");
-    })
-    .catch((err) => console.log(err));
-};
+exports.postOrder = (req, res, next) => {};
