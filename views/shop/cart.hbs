@@ -15,6 +15,7 @@
       <tbody>
         {{#each products}}
           <tr>
+            <!-- Product -->
             <td class="product-info">
               <img
                 src="{{this.productId.imageUrl}}"
@@ -22,7 +23,11 @@
               />
               <span>{{this.productId.title}}</span>
             </td>
-            <span>{{this.productId.title}}</span>
+
+            <!-- Price -->
+            <td>${{this.productId.price}}</td>
+
+            <!-- Quantity -->
             <td>
               <input
                 type="number"
@@ -31,10 +36,18 @@
                 class="quantity-input"
               />
             </td>
-            <span>{{this.productId.title}}</span>
+
+            <!-- Total -->
+            <td>${{multiply this.productId.price this.quantity}}</td>
+
+            <!-- Action -->
             <td>
               <form action="/shop/cart-delete-item" method="POST">
-                <input type="hidden" name="productId" value="{{this._id}}" />
+                <input
+                  type="hidden"
+                  name="productId"
+                  value="{{this.productId._id}}"
+                />
                 <button type="submit" class="btn-remove">Remove</button>
               </form>
             </td>
