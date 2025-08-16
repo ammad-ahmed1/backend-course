@@ -9,6 +9,7 @@ exports.getAddProduct = (req, res) => {
     extraCss: ["/css/forms.css"],
     editing: false,
     product: {},
+    isAuthenticated: req.session.isLoggedIn,
   });
 };
 
@@ -37,6 +38,7 @@ exports.getProducts = (req, res) => {
         pageTitle: "Admin Products",
         path: "/admin/products",
         extraCss: ["/css/product.css"],
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -54,6 +56,7 @@ exports.getEditProduct = (req, res) => {
         extraCss: ["/css/forms.css"],
         editing: true,
         product,
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));

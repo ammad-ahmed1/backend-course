@@ -9,7 +9,8 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         pageTitle: "All Products",
         path: "/products",
-        extraCss: ["/css/product.css"], // CSS added here
+        extraCss: ["/css/product.css"],
+        isAuthenticated: req.session.user.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -27,7 +28,8 @@ exports.getProduct = (req, res, next) => {
         product: product,
         pageTitle: product.title,
         path: "/products",
-        extraCss: ["/css/product-details.css"], // CSS added here
+        extraCss: ["/css/product-details.css"],
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -41,7 +43,8 @@ exports.getIndex = (req, res, next) => {
         prods: products,
         pageTitle: "Shop",
         path: "/",
-        extraCss: ["/css/index.css"], // CSS added here
+        extraCss: ["/css/index.css"],
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -60,6 +63,7 @@ exports.getCart = (req, res, next) => {
         pageTitle: "Your Cart",
         products: products,
         extraCss: ["/css/cart.css"],
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -94,13 +98,14 @@ exports.postDeleteCart = (req, res, next) => {
 
 // GET /orders
 exports.getOrders = (req, res, next) => {
-  Order.find({ "user.userId": req.user._id })
+  Order.find({ "user.userId": req.session.user._id })
     .then((orders) => {
       res.render("shop/orders", {
         pageTitle: "Your Orders",
         path: "/orders",
         orders: orders,
         extraCss: ["/css/orders.css"],
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
@@ -110,7 +115,7 @@ exports.getOrders = (req, res, next) => {
 
 // POST orders
 exports.postOrder = (req, res, next) => {
-  req.user
+  req.session.user
     .populate("cart.items.productId")
     .then((user) => {
       const products = user.cart.items.map((i) => {
@@ -122,7 +127,7 @@ exports.postOrder = (req, res, next) => {
 
       const order = new Order({
         user: {
-          name: req.user.name,
+          name: req.session.user.name,
           userId: req.user,
         },
         products: products,

@@ -7,31 +7,49 @@ const http = require("http");
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const session = require("express-session");
+const MongoDBStore = require("connect-mongodb-session")(session);
 const expressHbs = require("express-handlebars");
 
 const errorController = require("./controllers/error");
+const MONGODBURI =
+  "mongodb+srv://iammadmughal480:uEmigj2ZqOyjg01T@cluster0.qgsvy6q.mongodb.net/";
 const User = require("./models/user");
 
 const ObjectId = mongodb.ObjectId;
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
+const authRoutes = require("./routes/auth");
 
 const app = express();
+const store = new MongoDBStore({
+  uri: MONGODBURI,
+  collection: "sessions",
+});
 
 const Handlebars = require("handlebars");
 
 const rootDir = require("./utils/path");
 
 app.use(bodyParser.urlencoded({ extended: false }));
-
 app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  session({
+    secret: "my secret",
+    resave: false,
+    saveUninitialized: false,
+    store: store,
+  })
+);
 
 app.use((req, res, next) => {
-  User.findById("689e6030f5c81aea57d122c5")
+  if (!req.session.user) {
+    return next();
+  }
+  User.findById(req.session.user._id)
     .then((user) => {
       req.user = user;
-      // req.user = new User(user?.name, user?.email, user?.cart, user?._id);
       next();
     })
     .catch((err) => console.log(err));
@@ -39,6 +57,7 @@ app.use((req, res, next) => {
 
 app.use("/admin", adminRoutes);
 app.use("/shop", shopRoutes);
+app.use(authRoutes);
 
 const {
   allowInsecurePrototypeAccess,
@@ -73,9 +92,7 @@ app.set("views", "views");
 app.use(errorController.get404);
 
 mongoose
-  .connect(
-    "mongodb+srv://iammadmughal480:uEmigj2ZqOyjg01T@cluster0.qgsvy6q.mongodb.net/"
-  )
+  .connect(MONGODBURI)
   .then((result) => {
     console.log("connected");
     User.findOne()

@@ -1,12 +1,67 @@
 <header>
   <nav>
     <ul>
-      <li><a href="/admin/edit-product" class="{{#ifEquals activePage 'add'}}active{{/ifEquals}}">Add Product</a></li>
-      <li><a href="/shop/products" class="{{#ifEquals activePage 'shop'}}active{{/ifEquals}}">Shop</a></li>
-      <li><a href="/shop/cart" class="{{#ifEquals activePage 'cart'}}active{{/ifEquals}}">Cart</a></li>
-      <li><a href="/shop/checkout" class="{{#ifEquals activePage 'checkout'}}active{{/ifEquals}}">Checkout</a></li>
-      <li><a href="/shop/orders" class="{{#ifEquals activePage 'orders'}}active{{/ifEquals}}">Orders</a></li>
-      <li><a href="/admin/products" class="{{#ifEquals activePage 'admin-products'}}active{{/ifEquals}}">Admin Products</a></li>
+      <li>
+        <a
+          href="/shop/products"
+          class="{{#ifEquals activePage 'shop'}}active{{/ifEquals}}"
+          >Shop</a
+        >
+      </li>
+
+      {{#if isAuthenticated}}
+        <li>
+          <a
+            href="/shop/cart"
+            class="{{#ifEquals activePage 'cart'}}active{{/ifEquals}}"
+            >Cart</a
+          >
+        </li>
+        <li>
+          <a
+            href="/shop/checkout"
+            class="{{#ifEquals activePage 'checkout'}}active{{/ifEquals}}"
+            >Checkout</a
+          >
+        </li>
+        <li>
+          <a
+            href="/shop/orders"
+            class="{{#ifEquals activePage 'orders'}}active{{/ifEquals}}"
+            >Orders</a
+          >
+        </li>
+        <li>
+          <a
+            href="/admin/edit-product"
+            class="{{#ifEquals activePage 'add'}}active{{/ifEquals}}"
+            >Add Product</a
+          >
+        </li>
+        <li>
+          <a
+            href="/admin/products"
+            class="{{#ifEquals activePage 'admin-products'}}active{{/ifEquals}}"
+            >Admin Products</a
+          >
+        </li>
+      {{/if}}
+
+      {{#if isAuthenticated}}
+        <li>
+          <form action="/logout" method="POST" style="display: inline">
+            <button type="submit">Logout</button>
+          </form>
+        </li>
+      {{else}}
+        <li>
+          <a
+            href="/login"
+            class="{{#ifEquals activePage 'login'}}active{{/ifEquals}}"
+            >Login</a
+          >
+        </li>
+      {{/if}}
     </ul>
   </nav>
 </header>

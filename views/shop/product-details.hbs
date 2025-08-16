@@ -7,7 +7,9 @@
       <h1>{{product.title}}</h1>
       <p class="price">$ {{product.price}}</p>
       <p class="description">{{product.description}}</p>
-      {{> add-to-cart product=this }}
+{{#if isAuthenticated}}
+    {{> add-to-cart product=this }}
+  {{/if}}
     </div>
   </div>
 </div>
