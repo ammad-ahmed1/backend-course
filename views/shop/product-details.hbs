@@ -3,13 +3,15 @@
     <div class="product-image">
       <img src="{{product.imageUrl}}" alt="{{product.title}}" />
     </div>
+
     <div class="product-info">
       <h1>{{product.title}}</h1>
       <p class="price">$ {{product.price}}</p>
       <p class="description">{{product.description}}</p>
-{{#if isAuthenticated}}
-    {{> add-to-cart product=this }}
-  {{/if}}
+
+      {{#if isAuthenticated}}
+        {{> add-to-cart product=product }}
+      {{/if}}
     </div>
   </div>
 </div>

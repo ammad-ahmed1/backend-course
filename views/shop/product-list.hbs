@@ -8,17 +8,15 @@
         <h2>{{this.title}}</h2>
         <p class="price">$ {{this.price}}</p>
 
-       <div class="product-actions">
-  <a href="/shop/products/{{this._id}}" class="btn-details">
-    🔍 View Details
-  </a>
+        <div class="product-actions">
+          <a href="/shop/products/{{this._id}}" class="btn-details">
+            🔍 View Details
+          </a>
 
-  {{#if isAuthenticated}}
- 
-    {{> add-to-cart product=this }}
-  {{/if}}
-</div>
-
+          {{#if ../isAuthenticated}}
+            {{> add-to-cart product=this }}
+          {{/if}}
+        </div>
       </div>
     {{/each}}
   </div>
