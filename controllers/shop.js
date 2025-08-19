@@ -10,7 +10,7 @@ exports.getProducts = (req, res, next) => {
         pageTitle: "All Products",
         path: "/products",
         extraCss: ["/css/product.css"],
-        isAuthenticated: req.session.user.isLoggedIn,
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -57,7 +57,6 @@ exports.getCart = (req, res, next) => {
     .populate("cart.items.productId")
     .then((user) => {
       const products = user.cart.items;
-      console.log(products);
       res.render("shop/cart", {
         path: "/cart",
         pageTitle: "Your Cart",
@@ -115,7 +114,7 @@ exports.getOrders = (req, res, next) => {
 
 // POST orders
 exports.postOrder = (req, res, next) => {
-  req.session.user
+  req.user
     .populate("cart.items.productId")
     .then((user) => {
       const products = user.cart.items.map((i) => {
