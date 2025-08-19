@@ -12,19 +12,29 @@
       solid #ccc; } .login-container button { width: 100%; padding: 10px;
       background: #007BFF; color: white; border: none; border-radius: 5px;
       cursor: pointer; } .login-container button:hover { background: #0056b3; }
+      .error { color: red; font-size: 0.9em; margin-top: -5px; margin-bottom:
+      8px; }
     </style>
   </head>
   <body>
     <div class="login-container">
       <h2>Login</h2>
       <form action="/login" method="POST">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}" />
         <input type="email" name="email" placeholder="Enter Email" required />
+        {{#if errorEmail}}
+          <div class="error">{{errorEmail}}</div>
+        {{/if}}
         <input
           type="password"
           name="password"
           placeholder="Enter Password"
           required
         />
+        {{#if errorPassword}}
+          <div class="error">{{errorPassword}}</div>
+        {{/if}}
+
         <button type="submit">Login</button>
       </form>
     </div>

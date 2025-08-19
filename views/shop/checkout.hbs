@@ -6,6 +6,7 @@
   <div class="checkout-section shipping-details">
     <h2>Shipping Details</h2>
     <form action="/place-order" method="POST" class="form">
+      <input type="hidden" name="_csrf" value="{{csrfToken}}" />
       <div class="form-group">
         <label for="fullname">Full Name</label>
         <input

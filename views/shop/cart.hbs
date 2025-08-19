@@ -43,6 +43,7 @@
             <!-- Action -->
             <td>
               <form action="/shop/cart-delete-item" method="POST">
+                <input type="hidden" name="_csrf" value="{{../csrfToken}}" />
                 <input
                   type="hidden"
                   name="productId"
@@ -59,6 +60,7 @@
     <div class="cart-summary">
       <p><strong>Subtotal:</strong> ${{cartTotal}}</p>
       <form action="/shop/create-order" method="POST">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}" />
         <button type="submit" class="btn-checkout">Proceed to Checkout</button>
       </form>
     </div>

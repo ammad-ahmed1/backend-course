@@ -5,8 +5,9 @@
         <a
           href="/shop/products"
           class="{{#ifEquals activePage 'shop'}}active{{/ifEquals}}"
-          >Shop</a
         >
+          Shop
+        </a>
       </li>
 
       {{#if isAuthenticated}}
@@ -14,42 +15,48 @@
           <a
             href="/shop/cart"
             class="{{#ifEquals activePage 'cart'}}active{{/ifEquals}}"
-            >Cart</a
           >
+            Cart
+          </a>
         </li>
         <li>
           <a
             href="/shop/checkout"
             class="{{#ifEquals activePage 'checkout'}}active{{/ifEquals}}"
-            >Checkout</a
           >
+            Checkout
+          </a>
         </li>
         <li>
           <a
             href="/shop/orders"
             class="{{#ifEquals activePage 'orders'}}active{{/ifEquals}}"
-            >Orders</a
           >
+            Orders
+          </a>
         </li>
         <li>
           <a
             href="/admin/edit-product"
             class="{{#ifEquals activePage 'add'}}active{{/ifEquals}}"
-            >Add Product</a
           >
+            Add Product
+          </a>
         </li>
         <li>
           <a
             href="/admin/products"
             class="{{#ifEquals activePage 'admin-products'}}active{{/ifEquals}}"
-            >Admin Products</a
           >
+            Admin Products
+          </a>
         </li>
       {{/if}}
 
       {{#if isAuthenticated}}
         <li>
           <form action="/logout" method="POST" style="display: inline">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
             <button type="submit">Logout</button>
           </form>
         </li>
@@ -58,8 +65,17 @@
           <a
             href="/login"
             class="{{#ifEquals activePage 'login'}}active{{/ifEquals}}"
-            >Login</a
           >
+            Login
+          </a>
+        </li>
+        <li>
+          <a
+            href="/signup"
+            class="{{#ifEquals activePage 'signup'}}active{{/ifEquals}}"
+          >
+            Signup
+          </a>
         </li>
       {{/if}}
     </ul>

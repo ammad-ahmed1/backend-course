@@ -14,7 +14,7 @@
           </a>
 
           {{#if ../isAuthenticated}}
-            {{> add-to-cart product=this }}
+            {{> add-to-cart product=this csrfToken=../csrfToken}}
           {{/if}}
         </div>
       </div>

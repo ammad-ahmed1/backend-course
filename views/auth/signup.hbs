@@ -1,0 +1,41 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Signup</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f3f3f3; display: flex;
+      justify-content: center; align-items: center; height: 100vh; }
+      .signup-container { background: white; padding: 25px; border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); width: 320px; }
+      .signup-container h2 { text-align: center; margin-bottom: 20px; }
+      .signup-container input { width: 100%; padding: 10px; margin: 8px 0;
+      border-radius: 5px; border: 1px solid #ccc; } .signup-container button {
+      width: 100%; padding: 10px; background: #28a745; color: white; border:
+      none; border-radius: 5px; cursor: pointer; } .signup-container
+      button:hover { background: #218838; }
+    </style>
+  </head>
+  <body>
+    <div class="signup-container">
+      <h2>Signup</h2>
+      <form action="/signup" method="POST">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}" />
+        <input type="text" name="name" placeholder="Full Name" required />
+        <input type="email" name="email" placeholder="Enter Email" required />
+        <input
+          type="password"
+          name="password"
+          placeholder="Enter Password"
+          required
+        />
+        <input
+          type="password"
+          name="confirmPassword"
+          placeholder="Confirm Password"
+          required
+        />
+        <button type="submit">Create Account</button>
+      </form>
+    </div>
+  </body>
+</html>

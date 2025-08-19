@@ -1,5 +1,6 @@
 <h1>Add a New Product</h1>
 <form action="/admin/add-product" method="POST">
+  <input type="hidden" name="_csrf" value="{{csrfToken}}" />
   <label for="title">Product Title:</label>
   <input
     type="text"
