@@ -4,6 +4,8 @@ const path = require("path");
 
 const http = require("http");
 
+require("dotenv").config();
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -14,8 +16,7 @@ const csrf = require("csurf");
 const flash = require("connect-flash");
 
 const errorController = require("./controllers/error");
-const MONGODBURI =
-  "mongodb+srv://iammadmughal480:uEmigj2ZqOyjg01T@cluster0.qgsvy6q.mongodb.net/";
+const MONGODBURI = process.env.MONGODB_URI;
 const User = require("./models/user");
 
 const ObjectId = mongodb.ObjectId;
