@@ -10,7 +10,7 @@
       <p class="description">{{product.description}}</p>
 
       {{#if isAuthenticated}}
-        {{> add-to-cart product=product csrfToken=../csrfToken}}
+        {{> add-to-cart product=product }}
       {{/if}}
     </div>
   </div>
