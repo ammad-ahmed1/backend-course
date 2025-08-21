@@ -1,11 +1,12 @@
 const Product = require("../models/product");
 const Order = require("../models/order");
+
 // GET /products
 exports.getProducts = (req, res, next) => {
   Product.find()
     .populate("userId", "name")
     .then((products) => {
-      res.render("shop/product-list", {
+      res.status(200).render("shop/product-list", {
         prods: products,
         pageTitle: "All Products",
         path: "/products",
@@ -13,7 +14,10 @@ exports.getProducts = (req, res, next) => {
         isAuthenticated: req.session.isLoggedIn,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      res.status(500).redirect("/500");
+    });
 };
 
 // GET /products/:productId
@@ -22,9 +26,9 @@ exports.getProduct = (req, res, next) => {
   Product.findById(prodId)
     .then((product) => {
       if (!product) {
-        return res.redirect("/products");
+        return res.status(404).redirect("/products"); // Not Found
       }
-      res.render("shop/product-details", {
+      res.status(200).render("shop/product-details", {
         product: product,
         pageTitle: product.title,
         path: "/products",
@@ -32,14 +36,17 @@ exports.getProduct = (req, res, next) => {
         isAuthenticated: req.session.isLoggedIn,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      res.status(500).redirect("/500");
+    });
 };
 
 // GET /
 exports.getIndex = (req, res, next) => {
   Product.find()
     .then((products) => {
-      res.render("shop/index", {
+      res.status(200).render("shop/index", {
         prods: products,
         pageTitle: "Shop",
         path: "/",
@@ -47,17 +54,19 @@ exports.getIndex = (req, res, next) => {
         isAuthenticated: req.session.isLoggedIn,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      res.status(500).redirect("/500");
+    });
 };
 
-//GET /cart
-
+// GET /cart
 exports.getCart = (req, res, next) => {
   req.user
     .populate("cart.items.productId")
     .then((user) => {
       const products = user.cart.items;
-      res.render("shop/cart", {
+      res.status(200).render("shop/cart", {
         path: "/cart",
         pageTitle: "Your Cart",
         products: products,
@@ -65,41 +74,50 @@ exports.getCart = (req, res, next) => {
         isAuthenticated: req.session.isLoggedIn,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      res.status(500).redirect("/500");
+    });
 };
 
-//POST /cart
-
+// POST /cart
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
   Product.findById(prodId)
     .then((product) => {
+      if (!product) {
+        return res.status(404).redirect("/products");
+      }
       return req.user.addToCart(product);
     })
-    .then((result) => {
-      console.log(result);
-      res.redirect("/shop/cart");
+    .then(() => {
+      res.status(201).redirect("/shop/cart"); // Created
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      res.status(500).redirect("/500");
+    });
 };
 
-//DELETE cart
-
+// DELETE /cart
 exports.postDeleteCart = (req, res, next) => {
   const prodId = req.body.productId;
   req.user
     .removeFromCart(prodId)
-    .then((result) => {
-      res.redirect("/shop/cart");
+    .then(() => {
+      res.status(200).redirect("/shop/cart");
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      res.status(500).redirect("/500");
+    });
 };
 
 // GET /orders
 exports.getOrders = (req, res, next) => {
   Order.find({ "user.userId": req.session.user._id })
     .then((orders) => {
-      res.render("shop/orders", {
+      res.status(200).render("shop/orders", {
         pageTitle: "Your Orders",
         path: "/orders",
         orders: orders,
@@ -108,15 +126,20 @@ exports.getOrders = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err);
+      res.status(500).redirect("/500");
     });
 };
 
-// POST orders
+// POST /orders
 exports.postOrder = (req, res, next) => {
   req.user
     .populate("cart.items.productId")
     .then((user) => {
+      if (!user.cart.items.length) {
+        return res.status(400).redirect("/cart"); // Bad Request if cart is empty
+      }
+
       const products = user.cart.items.map((i) => {
         return {
           quantity: i.quantity,
@@ -134,14 +157,13 @@ exports.postOrder = (req, res, next) => {
 
       return order.save();
     })
-    .then(() => {
-      return req.user.clearCart();
-    })
+    .then(() => req.user.clearCart())
     .then(() => {
       console.log("Order placed successfully!");
-      res.redirect("/shop/orders");
+      res.status(201).redirect("/shop/orders"); // Created
     })
     .catch((err) => {
       console.error("Error placing order:", err);
+      res.status(500).redirect("/500");
     });
 };

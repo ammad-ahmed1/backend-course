@@ -1,33 +1,31 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
-
 const crypto = require("crypto");
 const transporter = require("../utils/transporter");
 
+// GET signup
 exports.getSignup = (req, res, next) => {
-  res.render("auth/signup", {
+  res.status(200).render("auth/signup", {
     path: "/signup",
     pageTitle: "Signup",
     isAuthenticated: req.session.isLoggedIn,
   });
 };
 
+// POST signup
 exports.postSignup = (req, res, next) => {
-  const name = req.body.name;
-  const email = req.body.email;
-  const password = req.body.password;
-  const confirmPassword = req.body.confirmPassword;
+  const { name, email, password, confirmPassword } = req.body;
 
   if (password !== confirmPassword) {
     console.log("Passwords mismatch!");
-    return res.redirect("/signup");
+    return res.status(400).redirect("/signup");
   }
 
-  User.findOne({ email: email })
+  User.findOne({ email })
     .then((userDoc) => {
       if (userDoc) {
         console.error("User already exists!");
-        return res.redirect("/signup");
+        return res.status(409).redirect("/signup"); // 409 Conflict
       }
       return bcrypt.hash(password, 12);
     })
@@ -39,60 +37,12 @@ exports.postSignup = (req, res, next) => {
           to: email,
           from: "iammadmughal480@gmail.com",
           subject: "Signup succeeded!",
-          html: `
-          <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Signup Confirmation</title>
-  </head>
-  <body style="font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 0;">
-    <div
-      style="
-        max-width: 500px;
-        margin: 40px auto;
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 8px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      "
-    >
-      <h2 style="color: #4f46e5; margin-bottom: 15px;">🎉 Welcome!</h2>
-
-      <p style="color: #333; margin: 10px 0;">Hi ${name},</p>
-      <p style="color: #333; margin: 10px 0;">
-        Your account has been created successfully.
-      </p>
-
-      <a
-        href="http://localhost:3000/login"
-        style="
-          display: inline-block;
-          margin-top: 15px;
-          padding: 10px 20px;
-          background: #4f46e5;
-          color: #ffffff;
-          text-decoration: none;
-          border-radius: 5px;
-        "
-      >
-        Login Now
-      </a>
-
-      <p style="margin-top: 20px; font-size: 12px; color: #888;">
-        If you didn’t sign up, ignore this email.
-      </p>
-    </div>
-  </body>
-</html>
-
-        `,
+          html: `<!DOCTYPE html> <html> <head> <meta charset="UTF-8" /> <title>Signup Confirmation</title> </head> <body style="font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 0;"> <div style=" max-width: 500px; margin: 40px auto; background: #ffffff; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); " > <h2 style="color: #4f46e5; margin-bottom: 15px;">🎉 Welcome!</h2> <p style="color: #333; margin: 10px 0;">Hi ${name},</p> <p style="color: #333; margin: 10px 0;"> Your account has been created successfully. </p> <a href="http://localhost:3000/login" style=" display: inline-block; margin-top: 15px; padding: 10px 20px; background: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 5px; " > Login Now </a> <p style="margin-top: 20px; font-size: 12px; color: #888;"> If you didn’t sign up, ignore this email. </p> </div> </body> </html>`,
         })
         .then(() => {
           const user = new User({
-            name: name,
-            email: email,
+            name,
+            email,
             password: hashedPassword,
             cart: { items: [] },
           });
@@ -101,19 +51,23 @@ exports.postSignup = (req, res, next) => {
         .then((savedUser) => {
           if (savedUser) {
             console.log("User saved & email sent!");
-            res.redirect("/login");
+            res.status(201).redirect("/login"); // 201 Created
           }
         })
         .catch((error) => {
           console.log("Email sending failed!", error);
-          res.redirect("/signup"); // email fail → user save nahi hoga
+          res.status(500).redirect("/signup"); // email fail
         });
     })
-    .catch((error) => console.log(error));
+    .catch((err) => {
+      console.log(err);
+      res.status(500).redirect("/500");
+    });
 };
 
+// GET login
 exports.getLogin = (req, res, next) => {
-  res.render("auth/login", {
+  res.status(200).render("auth/login", {
     path: "/login",
     pageTitle: "Login",
     isAuthenticated: req.session.isLoggedIn,
@@ -121,16 +75,16 @@ exports.getLogin = (req, res, next) => {
   });
 };
 
+// POST login
 exports.postLogin = (req, res, next) => {
-  const email = req.body.email;
-  const password = req.body.password;
+  const { email, password } = req.body;
 
-  User.findOne({ email: email })
+  User.findOne({ email })
     .then((user) => {
       if (!user) {
         console.log("Wrong email!");
         req.flash("error-email", "Invalid email!");
-        return res.redirect("/login");
+        return res.status(401).redirect("/login"); // Unauthorized
       }
 
       bcrypt
@@ -140,118 +94,85 @@ exports.postLogin = (req, res, next) => {
             req.session.isLoggedIn = true;
             req.session.user = user;
             return req.session.save((err) => {
-              console.log(err);
-              console.log("Logged in successfuly");
-              res.redirect("/shop/products");
+              if (err) console.log(err);
+              console.log("Logged in successfully");
+              res.status(200).redirect("/shop/products");
             });
           }
           console.log("Invalid Password!");
           req.flash("error-password", "Invalid password!");
-          res.redirect("/login");
+          res.status(401).redirect("/login");
         })
         .catch((error) => {
           console.log(error);
-          res.redirect("/login");
+          res.status(500).redirect("/login");
         });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      res.status(500).redirect("/500");
+    });
 };
 
+// POST logout
 exports.postLogout = (req, res, next) => {
   req.session.destroy(() => {
-    res.redirect("/login");
+    res.status(302).redirect("/login");
   });
 };
 
+// GET reset
 exports.getReset = (req, res, next) => {
-  res.render("auth/reset", {
+  res.status(200).render("auth/reset", {
     path: "/reset",
     pageTitle: "Reset Password",
   });
 };
 
+// POST reset
 exports.postReset = (req, res, next) => {
-  const email = req.body.email;
+  const { email } = req.body;
 
   crypto.randomBytes(32, (err, buffer) => {
     if (err) {
       console.log(err);
-      return res.redirect("/reset");
+      return res.status(500).redirect("/reset");
     }
 
     const token = buffer.toString("hex");
 
-    User.findOne({ email: email })
+    User.findOne({ email })
       .then((user) => {
         if (!user) {
           console.log("Email doesn't exist!");
           req.flash("error-email", "Invalid email!");
-          return res.redirect("/reset");
+          return res.status(404).redirect("/reset"); // Not Found
         }
 
         user.resetToken = token;
-        user.resetTokenExpiration = Date.now() + 3600000; // 1 hour expiry
+        user.resetTokenExpiration = Date.now() + 3600000; // 1h expiry
         return user.save();
       })
       .then((result) => {
-        if (!result) return; // if user not found, stop here
+        if (!result) return;
 
-        res.redirect("/login");
+        res.status(302).redirect("/login");
 
         return transporter.sendMail({
           to: email,
-          from: "iammadmughal480@gmail.com", // must be verified with SendGrid
+          from: "iammadmughal480@gmail.com",
           subject: "Password Reset",
-          html: `
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <meta charset="UTF-8" />
-              <title>Password Reset</title>
-            </head>
-            <body style="font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0;">
-              <div style="
-                max-width:500px; 
-                margin:40px auto; 
-                background:#ffffff; 
-                padding:20px; 
-                border-radius:8px; 
-                text-align:center; 
-                box-shadow:0 2px 8px rgba(0,0,0,0.1);
-              ">
-                <h2 style="color:#4f46e5; margin-bottom:15px;">🔑 Password Reset</h2>
-
-                <p style="color:#333; margin:10px 0;">Hi ${email},</p>
-                <p style="color:#333; margin:10px 0;">
-                  You requested to reset your password. Click the button below to set a new one:
-                </p>
-
-                <a href="http://localhost:3000/reset/${token}" 
-                  style="
-                    display:inline-block; 
-                    margin-top:15px; 
-                    padding:10px 20px; 
-                    background:#4f46e5; 
-                    color:#ffffff; 
-                    text-decoration:none; 
-                    border-radius:5px;
-                  ">
-                  Reset Password
-                </a>
-
-                <p style="margin-top:20px; font-size:12px; color:#888;">
-                  If you didn’t request this, you can safely ignore this email.
-                </p>
-              </div>
-            </body>
-          </html>
-          `,
+          html: `<!DOCTYPE html> <html> <head> <meta charset="UTF-8" /> <title>Password Reset</title> </head> <body style="font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0;"> <div style=" max-width:500px; margin:40px auto; background:#ffffff; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.1); "> <h2 style="color:#4f46e5; margin-bottom:15px;">🔑 Password Reset</h2> <p style="color:#333; margin:10px 0;">Hi ${email},</p> <p style="color:#333; margin:10px 0;"> You requested to reset your password. Click the button below to set a new one: </p> <a href="http://localhost:3000/reset/${token}" style=" display:inline-block; margin-top:15px; padding:10px 20px; background:#4f46e5; color:#ffffff; text-decoration:none; border-radius:5px; "> Reset Password </a> <p style="margin-top:20px; font-size:12px; color:#888;"> If you didn’t request this, you can safely ignore this email. </p> </div> </body> </html>`,
         });
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        res.status(500).redirect("/500");
+      });
   });
 };
 
+// GET new password
 exports.getNewPassword = (req, res, next) => {
   const token = req.params.token;
   User.findOne({
@@ -259,31 +180,43 @@ exports.getNewPassword = (req, res, next) => {
     resetTokenExpiration: { $gt: Date.now() },
   })
     .then((user) => {
-      res.render("auth/new-password", {
+      if (!user) {
+        return res.status(404).redirect("/reset");
+      }
+      res.status(200).render("auth/new-password", {
         path: "/new-password",
         pageTitle: "New Password",
         userId: user._id.toString(),
         token: token,
       });
     })
-    .catch((error) => console.log(error));
+    .catch((err) => {
+      console.log(err);
+      res.status(500).redirect("/500");
+    });
 };
 
+// POST new password
 exports.postNewPassword = (req, res, next) => {
-  const newPassword = req.body.password;
-  const confirmPassword = req.body.confirmPassword;
-  const passwordToken = req.body.passwordToken;
-  const userId = req.body.userId;
+  const {
+    password: newPassword,
+    confirmPassword,
+    passwordToken,
+    userId,
+  } = req.body;
   let resetUser;
+
   if (newPassword !== confirmPassword) {
     return res.status(400).send("Passwords do not match!");
   }
+
   User.findOne({
     resetToken: passwordToken,
     resetTokenExpiration: { $gt: Date.now() },
     _id: userId,
   })
     .then((user) => {
+      if (!user) return res.status(404).redirect("/reset");
       resetUser = user;
       return bcrypt.hash(newPassword, 12);
     })
@@ -293,8 +226,11 @@ exports.postNewPassword = (req, res, next) => {
       resetUser.resetTokenExpiration = undefined;
       return resetUser.save();
     })
-    .then((result) => {
-      res.redirect("/login");
+    .then(() => {
+      res.status(200).redirect("/login");
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      res.status(500).redirect("/500");
+    });
 };
