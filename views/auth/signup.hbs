@@ -12,26 +12,54 @@
       border-radius: 5px; border: 1px solid #ccc; } .signup-container button {
       width: 100%; padding: 10px; background: #28a745; color: white; border:
       none; border-radius: 5px; cursor: pointer; } .signup-container
-      button:hover { background: #218838; }
+      button:hover { background: #218838; } .error-messages { color: red;
+      font-size: 14px; margin-bottom: 10px; } .error-messages ul { padding-left:
+      20px; margin: 0; }
     </style>
   </head>
   <body>
     <div class="signup-container">
       <h2>Signup</h2>
+
+      {{#if errorMessage}}
+        <div class="error-messages">
+          <ul>
+            {{#each errorMessage}}
+              <li>{{this.msg}}</li>
+            {{/each}}
+          </ul>
+        </div>
+      {{/if}}
+
       <form action="/signup" method="POST">
         <input type="hidden" name="_csrf" value="{{csrfToken}}" />
-        <input type="text" name="name" placeholder="Full Name" required />
-        <input type="email" name="email" placeholder="Enter Email" required />
+
         <input
-          type="password"
-          name="password"
-          placeholder="Enter Password"
+          {{! type="text" }}
+          name="name"
+          placeholder="Full Name"
+          value="{{oldInput.name}}"
           required
         />
         <input
-          type="password"
+          {{! type="email" }}
+          name="email"
+          placeholder="Enter Email"
+          value="{{oldInput.email}}"
+          required
+        />
+        <input
+          {{! type="password" }}
+          name="password"
+          placeholder="Enter Password"
+          value="{{oldInput.password}}"
+          required
+        />
+        <input
+          {{! type="password" }}
           name="confirmPassword"
           placeholder="Confirm Password"
+          value="{{oldInput.confirmPassword}}"
           required
         />
         <button type="submit">Create Account</button>
