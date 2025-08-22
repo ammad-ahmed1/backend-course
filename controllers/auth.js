@@ -2,6 +2,7 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const transporter = require("../utils/transporter");
+const { validationResult } = require("express-validator");
 
 // GET signup
 exports.getSignup = (req, res, next) => {
@@ -9,13 +10,32 @@ exports.getSignup = (req, res, next) => {
     path: "/signup",
     pageTitle: "Signup",
     isAuthenticated: req.session.isLoggedIn,
+    oldInput: {
+      email: "",
+      name: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 };
 
 // POST signup
 exports.postSignup = (req, res, next) => {
   const { name, email, password, confirmPassword } = req.body;
-
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render("auth/signup", {
+      path: "/signup",
+      pageTitles: "Signup",
+      errorMessage: errors.array(),
+      oldInput: {
+        email: email,
+        name: name,
+        password: password,
+        confirmPassword: confirmPassword,
+      },
+    });
+  }
   if (password !== confirmPassword) {
     console.log("Passwords mismatch!");
     return res.status(400).redirect("/signup");
@@ -25,7 +45,7 @@ exports.postSignup = (req, res, next) => {
     .then((userDoc) => {
       if (userDoc) {
         console.error("User already exists!");
-        return res.status(409).redirect("/signup"); // 409 Conflict
+        return res.status(409).redirect("/signup");
       }
       return bcrypt.hash(password, 12);
     })
@@ -72,19 +92,44 @@ exports.getLogin = (req, res, next) => {
     pageTitle: "Login",
     isAuthenticated: req.session.isLoggedIn,
     errorMessage: req.flash("error"),
+    oldInput: {
+      email: "",
+      password: "",
+    },
   });
 };
 
 // POST login
 exports.postLogin = (req, res, next) => {
   const { email, password } = req.body;
-
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render("auth/login", {
+      path: "/login",
+      pageTitle: "Login",
+      errorMessage: errors.array(),
+      oldInput: {
+        email: email,
+        password: password,
+      },
+      validationErrors: errors.array(),
+    });
+  }
   User.findOne({ email })
     .then((user) => {
       if (!user) {
         console.log("Wrong email!");
-        req.flash("error-email", "Invalid email!");
-        return res.status(401).redirect("/login"); // Unauthorized
+        req.flash("error-email", "Invalid email! or password");
+        return res.status(422).render("auth/login", {
+          path: "/login",
+          pageTitle: "Login",
+          errorMessage: [{ msg: "Invalid email or password!" }],
+          oldInput: {
+            email: email,
+            password: password,
+          },
+          validationErrors: [],
+        });
       }
 
       bcrypt
@@ -101,7 +146,16 @@ exports.postLogin = (req, res, next) => {
           }
           console.log("Invalid Password!");
           req.flash("error-password", "Invalid password!");
-          res.status(401).redirect("/login");
+          return res.status(422).render("auth/login", {
+            path: "/login",
+            pageTitle: "Login",
+            errorMessage: [{ msg: "Invalid email or password!" }],
+            oldInput: {
+              email: email,
+              password: password,
+            },
+            validationErrors: [],
+          });
         })
         .catch((error) => {
           console.log(error);
