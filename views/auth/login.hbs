@@ -12,30 +12,44 @@
       solid #ccc; } .login-container button { width: 100%; padding: 10px;
       background: #007BFF; color: white; border: none; border-radius: 5px;
       cursor: pointer; } .login-container button:hover { background: #0056b3; }
-      .error { color: red; font-size: 0.9em; margin-top: -5px; margin-bottom:
-      8px; } .reset-link { text-align: center; margin-top: 15px; } .reset-link a
-      { font-size: 14px; color: #007BFF; text-decoration: none; } .reset-link
+      .error-messages { color: red; font-size: 0.9em; margin-bottom: 10px; }
+      .reset-link { text-align: center; margin-top: 15px; } .reset-link a {
+      font-size: 14px; color: #007BFF; text-decoration: none; } .reset-link
       a:hover { text-decoration: underline; }
     </style>
   </head>
   <body>
     <div class="login-container">
       <h2>Login</h2>
+
+      {{#if errorMessage}}
+        <div class="error-messages">
+          <ul>
+            {{#each errorMessage}}
+              <li>{{this.msg}}</li>
+            {{/each}}
+          </ul>
+        </div>
+      {{/if}}
+
       <form action="/login" method="POST">
         <input type="hidden" name="_csrf" value="{{csrfToken}}" />
-        <input type="email" name="email" placeholder="Enter Email" required />
-        {{#if errorEmail}}
-          <div class="error">{{errorEmail}}</div>
-        {{/if}}
+
         <input
-          type="password"
-          name="password"
-          placeholder="Enter Password"
+          {{! type="email" }}
+          name="email"
+          placeholder="Enter Email"
+          value="{{oldInput.email}}"
           required
         />
-        {{#if errorPassword}}
-          <div class="error">{{errorPassword}}</div>
-        {{/if}}
+
+        <input
+          {{! type="password" }}
+          name="password"
+          placeholder="Enter Password"
+          value="{{oldInput.password}}"
+          required
+        />
 
         <button type="submit">Login</button>
       </form>
