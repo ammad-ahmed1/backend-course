@@ -14,6 +14,7 @@ const MongoDBStore = require("connect-mongodb-session")(session);
 const expressHbs = require("express-handlebars");
 const csrf = require("csurf");
 const flash = require("connect-flash");
+const multer = require("multer");
 
 const errorController = require("./controllers/error");
 const MONGODBURI = process.env.MONGODB_URI;
@@ -21,6 +22,29 @@ const User = require("./models/user");
 
 const ObjectId = mongodb.ObjectId;
 
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      new Date().toISOString().replace(/:/g, "-") + "-" + file.originalname
+    );
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, true);
+  }
+};
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
@@ -36,6 +60,9 @@ const Handlebars = require("handlebars");
 const rootDir = require("./utils/path");
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
+);
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   session({
@@ -104,16 +131,16 @@ app.set("view engine", "hbs"); //if want to use handlebars
 app.set("views", "views");
 
 // Custom helper for active link
-
-app.use(errorController.get404);
-app.get("/500", errorController.get500);
 app.use((error, req, res, next) => {
+  console.log(req, ".......req 401");
   res.status(500).render("500", {
     pageTitle: "Error",
     path: "/500",
     isAuthenticated: req.session.isLoggedIn,
   });
 });
+app.get("/500", errorController.get500);
+app.use(errorController.get404);
 
 mongoose
   .connect(MONGODBURI)

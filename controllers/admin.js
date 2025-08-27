@@ -1,4 +1,5 @@
 // controllers/admin.js
+const { ValidationError } = require("sequelize");
 const Product = require("../models/product");
 
 // CREATE page
@@ -18,7 +19,27 @@ exports.getAddProduct = (req, res) => {
 
 // CREATE handler
 exports.postAddProduct = (req, res, next) => {
-  const { title, imageUrl, price, description } = req.body;
+  console.log("In controller");
+  const { title, price, description } = req.body;
+  const image = req.file;
+  console.log(image, "....img");
+  if (!image) {
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      hasError: true,
+      product: {
+        title: title,
+        price: price,
+        description: description,
+      },
+      errorMessage: "Attached file is not an image!",
+      validationErrors: [],
+    });
+  }
+  const imageUrl = image.path;
+  console.log(image);
   const product = new Product({
     title,
     price,
@@ -33,6 +54,7 @@ exports.postAddProduct = (req, res, next) => {
       res.status(201).redirect("/admin/products"); // 201 Created
     })
     .catch((err) => {
+      console.log("In controller catch");
       console.error(err);
       res.status(500).redirect("/500"); // 500 Internal Server Error
     });
@@ -84,7 +106,8 @@ exports.getEditProduct = (req, res, next) => {
 // UPDATE product
 exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  const { title, price, imageUrl, description } = req.body;
+  const { title, price, description } = req.body;
+  const image = req.file;
 
   Product.findById(prodId)
     .then((product) => {
@@ -94,10 +117,12 @@ exports.postEditProduct = (req, res, next) => {
       if (product.userId.toString() !== req.user._id.toString()) {
         return res.status(403).redirect("/"); // 403 Forbidden
       }
-
+      if (image) {
+        product.imageUrl = image.path;
+      }
       product.title = title;
       product.price = price;
-      product.imageUrl = imageUrl;
+      product.imageUrl = image.path;
       product.description = description;
 
       return product.save().then(() => {
