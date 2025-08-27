@@ -4,7 +4,7 @@
   <div class="product-grid">
     {{#each prods}}
       <div class="product-card">
-        <img src="{{this.imageUrl}}" alt="{{this.title}}" />
+        <img src="/{{this.imageUrl}}" alt="{{this.title}}" />
         <h2>{{this.title}}</h2>
         <p class="price">$ {{this.price}}</p>
 
@@ -12,7 +12,6 @@
           <a href="/shop/products/{{this._id}}" class="btn-details">
             🔍 View Details
           </a>
-
           {{#if ../isAuthenticated}}
             {{> add-to-cart product=this csrfToken=../csrfToken}}
           {{/if}}

@@ -10,6 +10,7 @@
           <th>Quantity</th>
           <th>Price</th>
           <th>User</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -21,6 +22,10 @@
               <td>{{quantity}}</td>
               <td>${{product.price}}</td>
               <td>{{../user.name}} {{../user.email}}</td>
+              <td>
+    <a href="/shop/orders/{{../_id}}" class="btn btn-primary btn-sm">Invoice</a>
+      
+  </td>
             </tr>
           {{/each}}
         {{/each}}

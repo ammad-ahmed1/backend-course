@@ -1,5 +1,8 @@
 const Product = require("../models/product");
 const Order = require("../models/order");
+const fs = require("fs");
+const path = require("path");
+const PDFDocument = require("pdfkit");
 
 // GET /products
 exports.getProducts = (req, res, next) => {
@@ -166,4 +169,127 @@ exports.postOrder = (req, res, next) => {
       console.error("Error placing order:", err);
       res.status(500).redirect("/500");
     });
+};
+
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+
+  Order.findById(orderId)
+    .then((order) => {
+      if (!order) {
+        return next(new Error("No order found"));
+      }
+      if (order.user.userId.toString() !== req.user._id.toString()) {
+        return next(new Error("Unauthorized"));
+      }
+
+      const invoiceName = "invoice-" + orderId + ".pdf";
+      const invoicePath = path.join("data", "invoices", invoiceName);
+
+      const pdfDoc = new PDFDocument({ margin: 50 });
+
+      // 👉 Open inline (browser new tab) OR change to "attachment" for direct download
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${invoiceName}"`
+      );
+
+      pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      pdfDoc.pipe(res);
+
+      // ---- HEADER ----
+      pdfDoc
+        .fontSize(24)
+        .fillColor("#333333")
+        .text("🧾 Order Invoice", { align: "center" });
+      pdfDoc.moveDown(0.5);
+      pdfDoc
+        .fontSize(12)
+        .fillColor("#666666")
+        .text("Invoice ID: " + orderId, { align: "center" });
+      pdfDoc.text("Date: " + new Date().toLocaleDateString(), {
+        align: "center",
+      });
+      pdfDoc.moveDown(2);
+
+      // ---- CUSTOMER INFO ----
+      pdfDoc
+        .fontSize(14)
+        .fillColor("#000000")
+        .text("Customer Information", { underline: true });
+      pdfDoc.moveDown(0.5);
+
+      pdfDoc.fontSize(12).text(`Name: ${order.user.name}`);
+      pdfDoc.text(`Email: ${order.user.email}`);
+      pdfDoc.moveDown(2);
+
+      // ---- ORDER DETAILS ----
+      pdfDoc
+        .fontSize(14)
+        .fillColor("#000000")
+        .text("Order Details", { underline: true });
+      pdfDoc.moveDown(1);
+
+      // Table-like header
+      pdfDoc
+        .fontSize(12)
+        .fillColor("#444444")
+        .text("Product", 50, pdfDoc.y, { continued: true })
+        .text("Qty", 250, pdfDoc.y, { continued: true })
+        .text("Price", 300, pdfDoc.y, { continued: true })
+        .text("Total", 400, pdfDoc.y);
+
+      pdfDoc.moveDown(0.5);
+      pdfDoc
+        .strokeColor("#aaaaaa")
+        .lineWidth(1)
+        .moveTo(50, pdfDoc.y)
+        .lineTo(550, pdfDoc.y)
+        .stroke();
+
+      let totalPrice = 0;
+      pdfDoc.moveDown(0.5);
+
+      order.products.forEach((prod) => {
+        const productTotal = prod.quantity * prod.product.price;
+        totalPrice += productTotal;
+
+        pdfDoc
+          .fontSize(12)
+          .fillColor("#000000")
+          .text(prod.product.title, 50, pdfDoc.y, { continued: true })
+          .text(prod.quantity.toString(), 250, pdfDoc.y, { continued: true })
+          .text(`$${prod.product.price.toFixed(2)}`, 300, pdfDoc.y, {
+            continued: true,
+          })
+          .text(`$${productTotal.toFixed(2)}`, 400, pdfDoc.y);
+
+        pdfDoc.moveDown(0.5);
+      });
+
+      // ---- TOTAL ----
+      pdfDoc.moveDown(1);
+      pdfDoc
+        .strokeColor("#000000")
+        .lineWidth(1)
+        .moveTo(50, pdfDoc.y)
+        .lineTo(550, pdfDoc.y)
+        .stroke();
+
+      pdfDoc
+        .fontSize(14)
+        .fillColor("#000000")
+        .text("Grand Total: $" + totalPrice.toFixed(2), 400, pdfDoc.y + 10);
+
+      // ---- FOOTER ----
+      pdfDoc.moveDown(4);
+      pdfDoc
+        .fontSize(10)
+        .fillColor("#666666")
+        .text("Thank you for your purchase!", { align: "center" });
+
+      pdfDoc.end();
+    })
+    .catch((err) => next(err));
 };

@@ -1,6 +1,7 @@
 // controllers/admin.js
 const { ValidationError } = require("sequelize");
 const Product = require("../models/product");
+const fileHelper = require("../utils/file");
 
 // CREATE page
 exports.getAddProduct = (req, res) => {
@@ -140,15 +141,17 @@ exports.postEditProduct = (req, res, next) => {
 
 // DELETE product
 exports.postDeleteProduct = (req, res, next) => {
+  console.log("I am called");
   Product.deleteOne({ _id: req.body.productId, userId: req.user._id })
     .then((result) => {
+      console.log(result, ".................res");
+      fileHelper.deleteFile(result.imageUrl);
       if (result.deletedCount === 0) {
         return res.status(404).redirect("/admin/products"); // 404 if nothing deleted
       }
       res.status(200).redirect("/admin/products");
     })
     .catch((err) => {
-      console.error(err);
       const error = new Error(err);
       error.httpStatusCode = 500;
       return next(error);

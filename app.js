@@ -64,6 +64,7 @@ app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
 );
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/images", express.static(path.join(__dirname, "images")));
 app.use(
   session({
     secret: "my secret",
@@ -132,7 +133,6 @@ app.set("views", "views");
 
 // Custom helper for active link
 app.use((error, req, res, next) => {
-  console.log(req, ".......req 401");
   res.status(500).render("500", {
     pageTitle: "Error",
     path: "/500",
