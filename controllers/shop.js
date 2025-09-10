@@ -4,19 +4,36 @@ const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
 
+const ITEMS_PER_PAGE = 2;
 // GET /products
 exports.getProducts = (req, res, next) => {
+  const page = Number(req.query.page) || 1;
+  let totalItems;
   Product.find()
-    .populate("userId", "name")
+    .countDocuments()
+    .then((numProducts) => {
+      totalItems = numProducts;
+      return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE);
+    })
     .then((products) => {
       res.status(200).render("shop/product-list", {
         prods: products,
         pageTitle: "All Products",
         path: "/products",
         extraCss: ["/css/product.css"],
+        totalProducts: totalItems,
+        page: page,
+        hasPreviousPage: page > 1 ? true : false,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        previousPage: page - 1,
+        nextPage: page ? page + 1 : 2,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
         isAuthenticated: req.session.isLoggedIn,
       });
     })
+    // .skip((page - 1) * ITEMS_PER_PAGE)
     .catch((err) => {
       console.error(err);
       res.status(500).redirect("/500");
@@ -47,13 +64,29 @@ exports.getProduct = (req, res, next) => {
 
 // GET /
 exports.getIndex = (req, res, next) => {
+  const page = Number(req.query.page) || 1;
+  let totalItems;
   Product.find()
+    .countDocuments()
+    .then((numProducts) => {
+      totalItems = numProducts;
+      return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE);
+    })
     .then((products) => {
-      res.status(200).render("shop/index", {
+      res.status(200).render("shop/product-list", {
         prods: products,
-        pageTitle: "Shop",
-        path: "/",
-        extraCss: ["/css/index.css"],
+        pageTitle: "All Products",
+        path: "/products",
+        extraCss: ["/css/product.css"],
+        totalProducts: totalItems,
+        page: page,
+        hasPreviousPage: page > 1 ? true : false,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        previousPage: page - 1,
+        nextPage: page ? page + 1 : 2,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
         isAuthenticated: req.session.isLoggedIn,
       });
     })
@@ -65,20 +98,36 @@ exports.getIndex = (req, res, next) => {
 
 // GET /cart
 exports.getCart = (req, res, next) => {
+  if (!req.user) {
+    return res.redirect("/login"); // agar user session expire ho gaya ho
+  }
+
   req.user
     .populate("cart.items.productId")
     .then((user) => {
-      const products = user.cart.items;
+      if (!user) {
+        return res.redirect("/login");
+      }
+
+      // filter: agar product delete ho gaya ho DB se to skip kar do
+      const products = user.cart.items.filter((item) => item.productId);
+
+      // calculate total
+      const totalPrice = products.reduce((sum, item) => {
+        return sum + item.quantity * item.productId.price;
+      }, 0);
+
       res.status(200).render("shop/cart", {
         path: "/cart",
         pageTitle: "Your Cart",
         products: products,
+        totalPrice: totalPrice,
         extraCss: ["/css/cart.css"],
         isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
-      console.error(err);
+      console.error("Error fetching cart:", err);
       res.status(500).redirect("/500");
     });
 };
@@ -118,12 +167,29 @@ exports.postDeleteCart = (req, res, next) => {
 
 // GET /orders
 exports.getOrders = (req, res, next) => {
+  const page = Number(req.query.page) || 1;
+  const ITEMS_PER_PAGE = 5; // ya jo tum chaho
+  let totalItems;
+
   Order.find({ "user.userId": req.session.user._id })
+    .countDocuments()
+    .then((numOrders) => {
+      totalItems = numOrders;
+      return Order.find({ "user.userId": req.session.user._id })
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE);
+    })
     .then((orders) => {
       res.status(200).render("shop/orders", {
         pageTitle: "Your Orders",
         path: "/orders",
         orders: orders,
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
         extraCss: ["/css/orders.css"],
         isAuthenticated: req.session.isLoggedIn,
       });

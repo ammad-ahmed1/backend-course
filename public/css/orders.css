@@ -15,7 +15,7 @@ h1 {
   background: #fff;
   padding: 20px;
   border-radius: 10px;
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow-x: auto;
@@ -25,6 +25,7 @@ h1 {
 .orders-table {
   width: 100%;
   border-collapse: collapse;
+  margin-bottom: 20px;
 }
 
 .orders-table th,
@@ -32,11 +33,13 @@ h1 {
   padding: 12px;
   text-align: center;
   border-bottom: 1px solid #ddd;
+  vertical-align: middle;
 }
 
 .orders-table th {
   background-color: #f1f1f1;
   font-weight: bold;
+  color: #34495e;
 }
 
 .orders-table tr:hover {
@@ -66,14 +69,17 @@ h1 {
   color: white;
 }
 
-/* View Button */
+/* Invoice Button */
 .btn-view {
   background-color: #3498db;
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 6px 14px;
   cursor: pointer;
   border-radius: 4px;
+  text-decoration: none;
+  font-size: 14px;
+  display: inline-block;
   transition: background 0.3s ease;
 }
 

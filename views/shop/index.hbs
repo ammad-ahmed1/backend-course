@@ -10,7 +10,17 @@
 
       </div>
     {{/each}}
+    {{> pagination 
+      page=page 
+      previousPage=previousPage 
+      nextPage=nextPage 
+      hasPreviousPage=hasPreviousPage 
+      hasNextPage=hasNextPage 
+      lastPage=lastPage
+  }}
+
   </div>
+  
 {{else}}
   <p>No products available yet.</p>
 {{/if}}
