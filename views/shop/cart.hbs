@@ -1,4 +1,4 @@
-<h1>My Cart</h1>
+<h1 class="cart-heading">🛒 My Cart</h1>
 
 {{#if products.length}}
   <div class="cart-container">
@@ -14,42 +14,47 @@
       </thead>
       <tbody>
         {{#each products}}
-          <tr>
+          <tr class="cart-row">
             <!-- Product -->
             <td class="product-info">
               <img
                 src="{{this.productId.imageUrl}}"
                 alt="{{this.productId.title}}"
+                class="product-img"
               />
-              <span>{{this.productId.title}}</span>
+              <span class="product-title">{{this.productId.title}}</span>
             </td>
 
             <!-- Price -->
-            <td>${{this.productId.price}}</td>
+            <td class="product-price">${{this.productId.price}}</td>
 
             <!-- Quantity -->
-            <td>
-              <input
-                type="number"
-                min="1"
-                value="{{this.quantity}}"
-                class="quantity-input"
-              />
+            <td class="product-qty">
+              <form action="/shop/cart-update-item" method="POST" class="qty-form">
+                <input type="hidden" name="_csrf" value="{{../csrfToken}}" />
+                <input type="hidden" name="productId" value="{{this.productId._id}}" />
+                <input
+                  type="number"
+                  name="quantity"
+                  min="1"
+                  value="{{this.quantity}}"
+                  class="quantity-input"
+                  onchange="this.form.submit()"
+                />
+              </form>
             </td>
 
             <!-- Total -->
-            <td>${{multiply this.productId.price this.quantity}}</td>
+            <td class="product-total">
+              ${{multiply this.productId.price this.quantity}}
+            </td>
 
             <!-- Action -->
-            <td>
+            <td class="product-action">
               <form action="/shop/cart-delete-item" method="POST">
                 <input type="hidden" name="_csrf" value="{{../csrfToken}}" />
-                <input
-                  type="hidden"
-                  name="productId"
-                  value="{{this.productId._id}}"
-                />
-                <button type="submit" class="btn-remove">Remove</button>
+                <input type="hidden" name="productId" value="{{this.productId._id}}" />
+                <button type="submit" class="btn-remove">✕</button>
               </form>
             </td>
           </tr>
@@ -57,14 +62,21 @@
       </tbody>
     </table>
 
+    <!-- Cart Summary -->
     <div class="cart-summary">
       <p><strong>Subtotal:</strong> ${{cartTotal}}</p>
       <form action="/shop/create-order" method="POST">
         <input type="hidden" name="_csrf" value="{{csrfToken}}" />
-        <button type="submit" class="btn-checkout">Proceed to Checkout</button>
+        <button
+          type="submit"
+          class="btn-checkout"
+          {{#unless products.length}}disabled{{/unless}}
+        >
+          Proceed to Checkout →
+        </button>
       </form>
     </div>
   </div>
 {{else}}
-  <p>Your cart is empty.</p>
+  <p class="cart-empty">🛍️ Your cart is empty. <a href="/shop">Continue shopping</a></p>
 {{/if}}

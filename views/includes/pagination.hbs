@@ -1,0 +1,16 @@
+<div class="pagination">
+  {{#if hasPreviousPage}}
+    <a href="{{baseUrl}}?page={{previousPage}}" class="page-btn">⬅ Prev</a>
+  {{/if}}
+
+  <span class="page-info">
+    Page
+    {{currentPage}}
+    of
+    {{lastPage}}
+  </span>
+
+  {{#if hasNextPage}}
+    <a href="{{baseUrl}}?page={{nextPage}}" class="page-btn">Next ➡</a>
+  {{/if}}
+</div>
