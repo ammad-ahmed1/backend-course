@@ -1,99 +1,68 @@
-<h1>Checkout</h1>
+<h1 class="checkout-title">Checkout</h1>
 
 <div class="checkout-container">
+  <!-- Cart Summary -->
+  <div class="cart-summary">
+    <h2>Your Cart</h2>
+    {{#if products}}
+      <ul class="cart-list">
+        {{#each products}}
+          <li class="cart-item">
+            <div class="cart-item-info">
+              <img src="/{{this.productId.imageUrl}}" alt="{{this.productId.title}}" />
+              <div>
+                <h3>{{this.productId.title}}</h3>
+                <p>Quantity: {{this.quantity}}</p>
+                <p class="price">$ {{this.productId.price}}</p>
+              </div>
+            </div>
+            <div class="item-total">
+              $ {{multiply this.quantity this.productId.price}}
+            </div>
+          </li>
+        {{/each}}
+      </ul>
 
-  <!-- Shipping Details -->
-  <div class="checkout-section shipping-details">
-    <h2>Shipping Details</h2>
-    <form action="/place-order" method="POST" class="form">
-      <input type="hidden" name="_csrf" value="{{csrfToken}}" />
-      <div class="form-group">
-        <label for="fullname">Full Name</label>
-        <input
-          type="text"
-          id="fullname"
-          name="fullname"
-          placeholder="John Doe"
-          required
-        />
+      <div class="cart-total">
+        <strong>Total: </strong>
+        <span class="total-price">$ {{totalPrice}}</span>
       </div>
+    {{else}}
+      <p>Your cart is empty.</p>
+    {{/if}}
+  </div>
 
+  <!-- Payment Section -->
+  <div class="payment-form">
+    <h2>Billing Details</h2>
+    <form action="/create-order" method="POST">
       <div class="form-group">
-        <label for="email">Email Address</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="example@mail.com"
-          required
-        />
+        <label for="name">Full Name</label>
+        <input id="name" name="name" type="text" placeholder="John Doe" required />
       </div>
 
       <div class="form-group">
         <label for="address">Address</label>
-        <input
-          type="text"
-          id="address"
-          name="address"
-          placeholder="123 Main St, City"
-          required
-        />
+        <input id="address" name="address" type="text" placeholder="123 Street, City" required />
       </div>
 
       <div class="form-group">
-        <label for="zipcode">ZIP Code</label>
-        <input
-          type="text"
-          id="zipcode"
-          name="zipcode"
-          placeholder="12345"
-          required
-        />
+        <label for="card">Card Number</label>
+        <input id="card" name="card" type="text" placeholder="**** **** **** 1234" required />
       </div>
 
-      <div class="form-group">
-        <label for="phone">Phone Number</label>
-        <input
-          type="text"
-          id="phone"
-          name="phone"
-          placeholder="+1 234 567 890"
-          required
-        />
+      <div class="form-row">
+        <div class="form-group">
+          <label for="expiry">Expiry</label>
+          <input id="expiry" name="expiry" type="text" placeholder="MM/YY" required />
+        </div>
+        <div class="form-group">
+          <label for="cvc">CVC</label>
+          <input id="cvc" name="cvc" type="text" placeholder="123" required />
+        </div>
       </div>
+
+      <button type="submit" class="checkout-btn">Place Order</button>
     </form>
   </div>
-
-  <!-- Order Summary -->
-  <div class="checkout-section order-summary">
-    <h2>Order Summary</h2>
-    <div class="summary-items">
-      {{#each cartItems}}
-        <div class="summary-item">
-          <span>{{this.title}} (x{{this.quantity}})</span>
-          <span>${{multiply this.price this.quantity}}</span>
-        </div>
-      {{/each}}
-    </div>
-
-    <div class="summary-total">
-      <strong>Total:</strong>
-      <span>${{cartTotal}}</span>
-    </div>
-
-    <!-- Payment Section -->
-    <div class="payment-method">
-      <h3>Payment Method</h3>
-      <div class="payment-method-inputs">
-        <label><input type="radio" name="payment" value="cod" checked />
-          Cash on Delivery</label>
-        <label><input type="radio" name="payment" value="card" />
-          Credit/Debit Card</label>
-      </div>
-    </div>
-
-    <button type="submit" form="checkout-form" class="btn-place-order">Place
-      Order</button>
-  </div>
-
 </div>

@@ -65,7 +65,7 @@
     <!-- Cart Summary -->
     <div class="cart-summary">
       <p><strong>Subtotal:</strong> ${{cartTotal}}</p>
-      <form action="/shop/create-order" method="POST">
+      {{!-- <form action="/shop/create-order" method="POST">
         <input type="hidden" name="_csrf" value="{{csrfToken}}" />
         <button
           type="submit"
@@ -74,7 +74,13 @@
         >
           Proceed to Checkout →
         </button>
-      </form>
+      </form> --}}
+       <a
+          href="/shop/checkout"
+          class="btn-checkout"
+        >
+          Proceed to Checkout →
+        </a>
     </div>
   </div>
 {{else}}

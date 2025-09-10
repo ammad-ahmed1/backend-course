@@ -236,7 +236,36 @@ exports.postOrder = (req, res, next) => {
       res.status(500).redirect("/500");
     });
 };
+exports.getCheckout = (req, res, next) => {
+  req.user
+    .populate("cart.items.productId")
+    .then((user) => {
+      if (!user) {
+        return res.redirect("/login");
+      }
 
+      
+      const products = user.cart.items.filter((item) => item.productId);
+
+      // calculate total
+      const totalPrice = products.reduce((sum, item) => {
+        return sum + item.quantity * item.productId.price;
+      }, 0);
+
+      res.status(200).render("shop/checkout", {
+        path: "/checkout",
+        pageTitle: "Checkout",
+        products: products,
+        totalPrice: totalPrice,
+        extraCss: ["/css/checkout.css"],
+        isAuthenticated: req.session.isLoggedIn,
+      });
+    })
+    .catch((err) => {
+      console.error("Error fetching cart:", err);
+      res.status(500).redirect("/500");
+    });
+};
 exports.getInvoice = (req, res, next) => {
   const orderId = req.params.orderId;
 
