@@ -80,3 +80,27 @@ main h1 {
   transition: all 0.3s ease;
   text-align: center;
 }
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem 0;
+  gap: 1rem;
+}
+
+.page-btn {
+  padding: 0.5rem 1rem;
+  background: #0070f3;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.page-btn:hover {
+  background: #0056c1;
+}
+
+.page-info {
+  font-weight: bold;
+}
