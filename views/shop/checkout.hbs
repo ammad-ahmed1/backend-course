@@ -9,7 +9,10 @@
         {{#each products}}
           <li class="cart-item">
             <div class="cart-item-info">
-              <img src="/{{this.productId.imageUrl}}" alt="{{this.productId.title}}" />
+              <img
+                src="/{{this.productId.imageUrl}}"
+                alt="{{this.productId.title}}"
+              />
               <div>
                 <h3>{{this.productId.title}}</h3>
                 <p>Quantity: {{this.quantity}}</p>
@@ -17,7 +20,8 @@
               </div>
             </div>
             <div class="item-total">
-              $ {{multiply this.quantity this.productId.price}}
+              $
+              {{multiply this.quantity this.productId.price}}
             </div>
           </li>
         {{/each}}
@@ -38,23 +42,47 @@
     <form action="/create-order" method="POST">
       <div class="form-group">
         <label for="name">Full Name</label>
-        <input id="name" name="name" type="text" placeholder="John Doe" required />
+        <input
+          id="name"
+          name="name"
+          type="text"
+          placeholder="John Doe"
+          required
+        />
       </div>
 
       <div class="form-group">
         <label for="address">Address</label>
-        <input id="address" name="address" type="text" placeholder="123 Street, City" required />
+        <input
+          id="address"
+          name="address"
+          type="text"
+          placeholder="123 Street, City"
+          required
+        />
       </div>
 
       <div class="form-group">
         <label for="card">Card Number</label>
-        <input id="card" name="card" type="text" placeholder="**** **** **** 1234" required />
+        <input
+          id="card"
+          name="card"
+          type="text"
+          placeholder="**** **** **** 1234"
+          required
+        />
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label for="expiry">Expiry</label>
-          <input id="expiry" name="expiry" type="text" placeholder="MM/YY" required />
+          <input
+            id="expiry"
+            name="expiry"
+            type="text"
+            placeholder="MM/YY"
+            required
+          />
         </div>
         <div class="form-group">
           <label for="cvc">CVC</label>
@@ -63,6 +91,11 @@
       </div>
 
       <button type="submit" class="checkout-btn">Place Order</button>
+      <script src="https://js.stripe.com/v3/">
+      </script>
+      <script>
+        var stripe = Stripe()
+      </script>
     </form>
   </div>
 </div>
