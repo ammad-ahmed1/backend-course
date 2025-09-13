@@ -3,7 +3,7 @@
 <div class="checkout-container">
   <!-- Cart Summary -->
   <div class="cart-summary">
-    <h2>Your Cart</h2>
+    <h2>{{pageTitle}}</h2>
     {{#if products}}
       <ul class="cart-list">
         {{#each products}}
@@ -38,64 +38,16 @@
 
   <!-- Payment Section -->
   <div class="payment-form">
-    <h2>Billing Details</h2>
-    <form action="/create-order" method="POST">
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          placeholder="John Doe"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="address">Address</label>
-        <input
-          id="address"
-          name="address"
-          type="text"
-          placeholder="123 Street, City"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="card">Card Number</label>
-        <input
-          id="card"
-          name="card"
-          type="text"
-          placeholder="**** **** **** 1234"
-          required
-        />
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="expiry">Expiry</label>
-          <input
-            id="expiry"
-            name="expiry"
-            type="text"
-            placeholder="MM/YY"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="cvc">CVC</label>
-          <input id="cvc" name="cvc" type="text" placeholder="123" required />
-        </div>
-      </div>
-
-      <button type="submit" class="checkout-btn">Place Order</button>
-      <script src="https://js.stripe.com/v3/">
-      </script>
-      <script>
-        var stripe = Stripe()
-      </script>
-    </form>
+    <h2>Proceed to Payment</h2>
+    <button id="checkout-btn" class="checkout-btn">Pay with Card</button>
   </div>
 </div>
+
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  const stripe = Stripe("{{stripePublicKey}}"); const checkoutBtn =
+  document.getElementById("checkout-btn"); checkoutBtn.addEventListener("click",
+  stripe.redirectToCheckout({ sessionId: "{{{sessionId}}}" }) ) .then(function
+  (result) { if (result.error) { alert(result.error.message); } });
+</script>
