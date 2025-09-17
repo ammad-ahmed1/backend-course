@@ -1,58 +1,53 @@
 const express = require("express");
 const { check, body } = require("express-validator");
+// const authController = require("../controllers/auth");
 const authController = require("../controllers/auth");
+console.log(authController);
 const router = express.Router();
 
-router.get("/signup", authController.getSignup);
+// Signup (POST)
 router.post(
   "/signup",
-  check("email")
-    .isEmail()
-    .withMessage("Please enter a valid email.")
-    .custom((value, { req }) => {
-      if (value === "test@test.com") {
-        throw new Error("This email is forbidden!");
+  [
+    check("email").isEmail().withMessage("Please enter a valid email."),
+    body(
+      "password",
+      "Please enter an alphanumeric password with at least 5 characters"
+    )
+      .isLength({ min: 5 })
+      .isAlphanumeric(),
+    body("confirmPassword").custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Passwords have to match!");
       }
       return true;
     }),
-  body(
-    "confirmPassword",
-    "Please enter an alphanumeric password with atleast length of 5 characters"
-  )
-    .isLength({ min: 5 })
-    .isAlphanumeric(),
-  body("confirmPassword").custom((value, { req }) => {
-    if (value !== req.body.password) {
-      throw new Error("Password have to match!");
-    }
-    return true;
-  }),
+  ],
   authController.postSignup
 );
-router.get("/login", authController.getLogin);
+
+// Login (POST)
 router.post(
   "/login",
-  check("email")
-    .isEmail()
-    .withMessage("Please enter a valid email.")
-    .custom((value, { req }) => {
-      if (value === "test@test.com") {
-        throw new Error("This email is forbidden!");
-      }
-      return true;
-    }),
-  body(
-    "password",
-    "Please enter an alphanumeric password with atleast length of 5 characters"
-  )
-    .isLength({ min: 5 })
-    .isAlphanumeric(),
+  [
+    check("email").isEmail().withMessage("Please enter a valid email."),
+    body(
+      "password",
+      "Please enter an alphanumeric password with at least 5 characters"
+    )
+      .isLength({ min: 5 })
+      .isAlphanumeric(),
+  ],
   authController.postLogin
 );
+
+// Logout (POST)
 router.post("/logout", authController.postLogout);
-router.get("/reset", authController.getReset);
+
+// Request password reset (POST)
 router.post("/reset", authController.postReset);
-router.get("/reset/:token", authController.getNewPassword);
+
+// Set new password (POST)
 router.post("/new-password", authController.postNewPassword);
 
 module.exports = router;
