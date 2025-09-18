@@ -7,7 +7,6 @@ const { validationResult } = require("express-validator");
 
 // POST signup
 exports.postSignup = async (req, res) => {
-  console.log("I am called.........................!");
   try {
     const { name, email, password, confirmPassword } = req.body;
     const errors = validationResult(req);
@@ -80,7 +79,7 @@ exports.postLogin = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: "User not found!",
         success: false,
       });
     }
@@ -144,7 +143,7 @@ exports.postReset = async (req, res) => {
       from: "iammadmughal480@gmail.com",
       subject: "Password Reset",
       html: `<p>You requested a password reset</p>
-             <p>Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password.</p>`,
+             <p>Click this <a href="http://localhost:3000/reset/${token}/${user._id}">link</a> to set a new password.</p>`,
     });
 
     res.status(200).json({

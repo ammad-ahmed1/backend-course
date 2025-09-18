@@ -10,12 +10,13 @@ router.post(
   "/signup",
   [
     check("email").isEmail().withMessage("Please enter a valid email."),
-    body(
-      "password",
-      "Please enter an alphanumeric password with at least 5 characters"
-    )
+    body("password")
       .isLength({ min: 5 })
-      .isAlphanumeric(),
+      .withMessage("Password must be at least 5 characters long")
+      .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/)
+      .withMessage(
+        "Password must contain letters, numbers, and at least one special character"
+      ),
     body("confirmPassword").custom((value, { req }) => {
       if (value !== req.body.password) {
         throw new Error("Passwords have to match!");
@@ -31,12 +32,13 @@ router.post(
   "/login",
   [
     check("email").isEmail().withMessage("Please enter a valid email."),
-    body(
-      "password",
-      "Please enter an alphanumeric password with at least 5 characters"
-    )
+    body("password")
       .isLength({ min: 5 })
-      .isAlphanumeric(),
+      .withMessage("Password must be at least 5 characters long")
+      .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/)
+      .withMessage(
+        "Password must contain letters, numbers, and at least one special character"
+      ),
   ],
   authController.postLogin
 );
