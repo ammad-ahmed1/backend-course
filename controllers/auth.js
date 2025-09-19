@@ -95,7 +95,7 @@ exports.postLogin = async (req, res) => {
     // Generate JWT Token
     const token = jwt.sign(
       { userId: user._id.toString(), email: user.email },
-      "supersecretkey", // 👉 isko .env me daalo
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 

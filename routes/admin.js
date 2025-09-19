@@ -1,27 +1,21 @@
-// admin.js
-
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/admin");
 const isAuth = require("../middleware/is-auth");
 
 // CREATE product
-router.post("/products", isAuth, adminController.postAddProduct);
+router.post("/product", isAuth, adminController.postAddProduct);
 
-// READ all products
+// READ ALL with filters products
 router.get("/products", isAuth, adminController.getProducts);
 
-// READ single product
+// single product by id
 router.get("/products/:productId", isAuth, adminController.getProduct);
 
 // UPDATE product
-router.put("/products/:productId", isAuth, adminController.postEditProduct);
+router.put("/product/:productId", isAuth, adminController.postEditProduct);
 
 // DELETE product
-router.delete(
-  "/products/:productId",
-  isAuth,
-  adminController.postDeleteProduct
-);
+router.delete("/product/:productId", isAuth, adminController.postDeleteProduct);
 
 module.exports = router;
