@@ -10,7 +10,7 @@ router.post("/product", isAuth, adminController.postAddProduct);
 router.get("/products", isAuth, adminController.getProducts);
 
 // single product by id
-router.get("/products/:productId", isAuth, adminController.getProduct);
+router.get("/product/:productId", isAuth, adminController.getProduct);
 
 // UPDATE product
 router.put("/product/:productId", isAuth, adminController.postEditProduct);

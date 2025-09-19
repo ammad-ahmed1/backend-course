@@ -35,47 +35,35 @@ exports.postAddProduct = async (req, res) => {
 };
 
 // READ all
-// READ with filters + pagination
 exports.getProducts = async (req, res) => {
   try {
-    let { page = 1, limit = 10, title, minPrice, maxPrice } = req.query;
+    const { page = 1, limit = 10, title, minPrice, maxPrice } = req.query;
 
-    // Convert page/limit to numbers
-    page = parseInt(page);
-    limit = parseInt(limit);
-
-    // Base filter: products only of this user
-    const filter = { userId: req.userId };
-
-    // Title search (case-insensitive regex)
+    const filters = { userId: req.userId };
     if (title) {
-      filter.title = { $regex: title, $options: "i" };
+      filters.title = { $regex: title, $options: "i" }; // case-insensitive search
     }
-
-    // Price range
     if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice);
-      if (maxPrice) filter.price.$lte = Number(maxPrice);
+      filters.price = {};
+      if (minPrice) filters.price.$gte = Number(minPrice);
+      if (maxPrice) filters.price.$lte = Number(maxPrice);
     }
 
-    // Total count for pagination
-    const totalProducts = await Product.countDocuments(filter);
-
-    // Paginated data
-    const products = await Product.find(filter)
+    const products = await Product.find(filters)
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(Number(limit));
+
+    const total = await Product.countDocuments(filters);
 
     res.status(200).json({
       message: "Products fetched successfully",
       success: true,
       data: products,
       pagination: {
-        total: totalProducts,
-        page,
-        limit,
-        totalPages: Math.ceil(totalProducts / limit),
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (err) {
@@ -84,12 +72,12 @@ exports.getProducts = async (req, res) => {
   }
 };
 
-
 // READ single
 exports.getProduct = async (req, res) => {
+  const id = req.params.productId;
   console.log("By id ran");
   try {
-    const product = await Product.findById(req.params.productId);
+    const product = await Product.findById(id);
     if (!product) {
       return res
         .status(404)
@@ -108,14 +96,12 @@ exports.getProduct = async (req, res) => {
 
 // UPDATE
 exports.postEditProduct = async (req, res) => {
+  const prodId = req.params.productId;
   try {
     const { title, price, description } = req.body;
     const image = req.file;
 
-    const product = await Product.findOne({
-        _id: req.query.productId,
-        userId: req.userId,
-      });
+    const product = await Product.findById({ _id: prodId, userId: req.userId });
     if (!product) {
       return res
         .status(404)
