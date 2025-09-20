@@ -1,37 +1,37 @@
 const express = require("express");
-
 const router = express.Router();
 
 const shopController = require("../controllers/shop");
-
 const isAuth = require("../middleware/is-auth");
+const stripe = require("stripe")(process.env.STRIPE_PVT_KEY.trim());
 
-const cleanStripeKey = process.env.STRIPE_PVT_KEY.trim();
-const stripe = require("stripe")(cleanStripeKey);
+// ---------------- Products ----------------
+router.get("/products", shopController.getProducts);        // Get all products
+router.get("/products/:productId", shopController.getProduct); // Get single product
 
-// router.get("/", shopController.getIndex);
-router.get("/products", shopController.getProducts);
-router.get("/products/:productId", shopController.getProduct);
-// router.get("/products/delete", shopController.deleteProduct);
+// ---------------- Cart ----------------
+router.get("/cart", isAuth, shopController.getCart);        // Get cart
+router.post("/cart", isAuth, shopController.addToCart);     // Add to cart
+router.put("/cart/:itemId", isAuth, shopController.updateCartItem); // Update item qty
+router.delete("/cart/:itemId", isAuth, shopController.deleteCartItem); // Remove item
 
-router.get("/cart", isAuth, shopController.getCart);
-router.post("/cart", isAuth, shopController.postCart);
-router.post("/cart-delete-item", isAuth, shopController.postDeleteCart);
-router.get("/checkout", isAuth, shopController.getCheckout);
+// ---------------- Checkout ----------------
+router.post("/checkout", isAuth, shopController.createCheckoutSession); 
 router.get("/checkout/success", isAuth, shopController.getCheckoutSuccess);
 router.get("/checkout/cancel", isAuth, shopController.getCheckoutCancel);
-router.get("/test-stripe", async (req, res) => {
+
+// ---------------- Stripe Utils ----------------
+router.get("/stripe/balance", async (req, res) => {
   try {
     const balance = await stripe.balance.retrieve();
-    res.json({ success: true, balance: balance });
+    res.json({ success: true, balance });
   } catch (error) {
-    console.error("Stripe test error:", error);
     res.json({ success: false, error: error.message });
   }
 });
-router.get("/stripe-key-check", (req, res) => {
-  const stripeKey = process.env.STRIPE_PVT_KEY;
 
+router.get("/stripe/key", (req, res) => {
+  const stripeKey = process.env.STRIPE_PVT_KEY;
   res.json({
     keyExists: !!stripeKey,
     keyLength: stripeKey ? stripeKey.length : 0,
@@ -41,8 +41,9 @@ router.get("/stripe-key-check", (req, res) => {
   });
 });
 
-router.post("/create-order", isAuth, shopController.postOrder);
-router.get("/orders", isAuth, shopController.getOrders);
-router.get("/orders/:orderId", isAuth, shopController.getInvoice);
+// ---------------- Orders ----------------
+router.post("/orders", isAuth, shopController.createOrder); // Create new order
+router.get("/orders", isAuth, shopController.getOrders);    // Get all orders
+// router.get("/orders/:orderId", isAuth, shopController.getOrder); // Get order by ID (invoice, details)
 
 module.exports = router;

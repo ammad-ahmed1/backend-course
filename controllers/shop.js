@@ -3,441 +3,269 @@ const Order = require("../models/order");
 const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
-const cleanStripeKey = process.env.STRIPE_PVT_KEY.trim();
-const stripe = require("stripe")(cleanStripeKey);
-const ITEMS_PER_PAGE = 2;
-// GET /products
-exports.getProducts = (req, res, next) => {
-  const page = Number(req.query.page) || 1;
-  let totalItems;
-  Product.find()
-    .countDocuments()
-    .then((numProducts) => {
-      totalItems = numProducts;
-      return Product.find()
-        .skip((page - 1) * ITEMS_PER_PAGE)
-        .limit(ITEMS_PER_PAGE);
-    })
-    .then((products) => {
-      res.status(200).render("shop/product-list", {
-        prods: products,
-        pageTitle: "All Products",
-        path: "/products",
-        extraCss: ["/css/product.css"],
-        totalProducts: totalItems,
-        page: page,
-        hasPreviousPage: page > 1 ? true : false,
-        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
-        previousPage: page - 1,
-        nextPage: page ? page + 1 : 2,
-        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
-        isAuthenticated: req.session.isLoggedIn,
-      });
-    })
-    // .skip((page - 1) * ITEMS_PER_PAGE)
-    .catch((err) => {
-      console.error(err);
-      res.status(500).redirect("/500");
-    });
-};
+const stripe = require("stripe")(process.env.STRIPE_PVT_KEY.trim());
 
-// GET /products/:productId
-exports.getProduct = (req, res, next) => {
-  const prodId = req.params.productId;
-  Product.findById(prodId)
-    .then((product) => {
-      if (!product) {
-        return res.status(404).redirect("/products"); // Not Found
-      }
-      res.status(200).render("shop/product-details", {
-        product: product,
-        pageTitle: product.title,
-        path: "/products",
-        extraCss: ["/css/product-details.css"],
-        isAuthenticated: req.session.isLoggedIn,
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).redirect("/500");
-    });
-};
+const ITEMS_PER_PAGE = 10;
 
-// GET /
-exports.getIndex = (req, res, next) => {
-  const page = Number(req.query.page) || 1;
-  let totalItems;
-  Product.find()
-    .countDocuments()
-    .then((numProducts) => {
-      totalItems = numProducts;
-      return Product.find()
-        .skip((page - 1) * ITEMS_PER_PAGE)
-        .limit(ITEMS_PER_PAGE);
-    })
-    .then((products) => {
-      res.status(200).render("shop/product-list", {
-        prods: products,
-        pageTitle: "All Products",
-        path: "/products",
-        extraCss: ["/css/product.css"],
-        totalProducts: totalItems,
-        page: page,
-        hasPreviousPage: page > 1 ? true : false,
-        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
-        previousPage: page - 1,
-        nextPage: page ? page + 1 : 2,
-        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
-        isAuthenticated: req.session.isLoggedIn,
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).redirect("/500");
-    });
-};
+// ---------------- Products ----------------
 
-// GET /cart
-exports.getCart = (req, res, next) => {
-  if (!req.user) {
-    return res.redirect("/login"); // agar user session expire ho gaya ho
-  }
+// GET /api/products?page=1&title=phone&minPrice=100&maxPrice=500
+exports.getProducts = async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const { title, minPrice, maxPrice } = req.query;
 
-  req.user
-    .populate("cart.items.productId")
-    .then((user) => {
-      if (!user) {
-        return res.redirect("/login");
-      }
+    let filter = {};
+    if (title) {
+      filter.title = { $regex: title, $options: "i" };
+    }
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = Number(minPrice);
+      if (maxPrice) filter.price.$lte = Number(maxPrice);
+    }
 
-      // filter: agar product delete ho gaya ho DB se to skip kar do
-      const products = user.cart.items.filter((item) => item.productId);
+    const totalItems = await Product.countDocuments(filter);
+    const products = await Product.find(filter)
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE);
 
-      // calculate total
-      const totalPrice = products.reduce((sum, item) => {
-        return sum + item.quantity * item.productId.price;
-      }, 0);
-
-      res.status(200).render("shop/cart", {
-        path: "/cart",
-        pageTitle: "Your Cart",
-        products: products,
-        totalPrice: totalPrice,
-        extraCss: ["/css/cart.css"],
-        isAuthenticated: req.session.isLoggedIn,
-      });
-    })
-    .catch((err) => {
-      console.error("Error fetching cart:", err);
-      res.status(500).redirect("/500");
-    });
-};
-
-// POST /cart
-exports.postCart = (req, res, next) => {
-  const prodId = req.body.productId;
-  Product.findById(prodId)
-    .then((product) => {
-      if (!product) {
-        return res.status(404).redirect("/products");
-      }
-      return req.user.addToCart(product);
-    })
-    .then(() => {
-      res.status(201).redirect("/shop/cart"); // Created
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).redirect("/500");
-    });
-};
-
-// DELETE /cart
-exports.postDeleteCart = (req, res, next) => {
-  const prodId = req.body.productId;
-  req.user
-    .removeFromCart(prodId)
-    .then(() => {
-      res.status(200).redirect("/shop/cart");
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).redirect("/500");
-    });
-};
-
-// GET /orders
-exports.getOrders = (req, res, next) => {
-  const page = Number(req.query.page) || 1;
-  const ITEMS_PER_PAGE = 5; // ya jo tum chaho
-  let totalItems;
-
-  Order.find({ "user.userId": req.session.user._id })
-    .countDocuments()
-    .then((numOrders) => {
-      totalItems = numOrders;
-      return Order.find({ "user.userId": req.session.user._id })
-        .skip((page - 1) * ITEMS_PER_PAGE)
-        .limit(ITEMS_PER_PAGE);
-    })
-    .then((orders) => {
-      res.status(200).render("shop/orders", {
-        pageTitle: "Your Orders",
-        path: "/orders",
-        orders: orders,
+    res.status(200).json({
+      success: true,
+      products,
+      pagination: {
+        totalItems,
         currentPage: page,
         hasNextPage: ITEMS_PER_PAGE * page < totalItems,
         hasPreviousPage: page > 1,
         nextPage: page + 1,
         previousPage: page - 1,
         lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
-        extraCss: ["/css/orders.css"],
-        isAuthenticated: req.session.isLoggedIn,
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).redirect("/500");
+      },
     });
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 };
 
-// POST /orders
-exports.postOrder = (req, res, next) => {
-  req.user
-    .populate("cart.items.productId")
-    .then((user) => {
-      if (!user.cart.items.length) {
-        return res.status(400).redirect("/cart"); // Bad Request if cart is empty
-      }
+// GET /api/products/:productId
+exports.getProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.productId);
+    if (!product)
+      return res.status(404).json({ success: false, message: "Not Found" });
 
-      const products = user.cart.items.map((i) => {
-        return {
-          quantity: i.quantity,
-          product: { ...i.productId._doc },
-        };
-      });
+    res.status(200).json({ success: true, product });
+  } catch (err) {
+    console.error("Error fetching product:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
 
-      const order = new Order({
-        user: {
-          name: req.session.user.name,
-          userId: req.user,
-        },
-        products: products,
-      });
+// ---------------- Cart ----------------
 
-      return order.save();
-    })
-    .then(() => req.user.clearCart())
-    .then(() => {
-      console.log("Order placed successfully!");
-      res.status(201).redirect("/shop/orders"); // Created
-    })
-    .catch((err) => {
-      console.error("Error placing order:", err);
-      res.status(500).redirect("/500");
+// GET /api/cart
+exports.getCart = async (req, res) => {
+  try {
+    const user = await req.user.populate("cart.items.productId");
+    const products = user.cart.items.filter((item) => item.productId);
+
+    const totalPrice = products.reduce(
+      (sum, item) => sum + item.quantity * item.productId.price,
+      0
+    );
+
+    res.status(200).json({ success: true, products, totalPrice });
+  } catch (err) {
+    console.error("Error fetching cart:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// POST /api/cart
+exports.addToCart = async (req, res) => {
+  try {
+    const product = await Product.findById(req.body.productId);
+    if (!product)
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+
+    await req.user.addToCart(product);
+    res.status(201).json({ success: true, message: "Added to cart" });
+  } catch (err) {
+    console.error("Error adding to cart:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// PUT /api/cart/:itemId (update quantity)
+exports.updateCartItem = async (req, res) => {
+  try {
+    const { quantity } = req.body;
+    await req.user.updateCartItem(req.params.itemId, quantity);
+    res.status(200).json({ success: true, message: "Cart updated" });
+  } catch (err) {
+    console.error("Error updating cart item:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// DELETE /api/cart/:itemId
+exports.deleteCartItem = async (req, res) => {
+  try {
+    await req.user.removeFromCart(req.params.itemId);
+    res.status(200).json({ success: true, message: "Item removed" });
+  } catch (err) {
+    console.error("Error deleting cart item:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// ---------------- Orders ----------------
+
+// GET /api/orders?page=1
+exports.getOrders = async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const ITEMS_PER_PAGE = 5;
+
+    const totalItems = await Order.countDocuments({
+      "user.userId": req.userId,
     });
-};
+    const orders = await Order.find({ "user.userId": req.userId })
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE);
 
-exports.getCheckoutSuccess = (req, res, next) => {
-  
-  res.status(200).render("shop/checkout-success", {
-    path: "/checkout/success",
-    pageTitle: "Payment Successful",
-    // extraCss: ["/css/checkout-success.css"],
-    isAuthenticated: req.session.isLoggedIn,
-  });
-};
-
-// Checkout Cancel
-exports.getCheckoutCancel = (req, res, next) => {
-  res.status(200).render("shop/checkout-cancel", {
-    path: "/checkout/cancel",
-    pageTitle: "Payment Failed",
-    // extraCss: ["/css/checkout-cancel.css"],
-    isAuthenticated: req.session.isLoggedIn,
-  });
-};
-exports.getCheckout = (req, res, next) => {
-  req.user
-    .populate("cart.items.productId")
-    .then((user) => {
-      if (!user) {
-        return res.redirect("/login");
-      }
-
-      const products = user.cart.items.filter((item) => item.productId);
-
-      // calculate total
-      const totalPrice = products.reduce((sum, item) => {
-        return sum + item.quantity * item.productId.price;
-      }, 0);
-      return stripe.checkout.sessions
-        .create({
-          payment_method_types: ["card"],
-          line_items: products.map((p) => {
-            return {
-              price_data: {
-                currency: "usd",
-                product_data: {
-                  name: p.productId.title,
-                  description: p.productId.description,
-                },
-                unit_amount: p.productId.price * 100, // amount in cents
-              },
-              quantity: p.quantity,
-            };
-          }),
-          mode: "payment",
-          success_url:
-            req.protocol + "://" + req.get("host") + "/shop/checkout/success",
-          cancel_url:
-            req.protocol + "://" + req.get("host") + "/shop/checkout/cancel",
-        })
-        .catch((err) => {
-          console.error("Stripe session creation failed:", err);
-          throw err; // rethrow so outer catch still works
-        });
-    })
-    .then((session) => {
-      res.status(200).render("shop/checkout", {
-        path: "/checkout",
-        pageTitle: "Checkout",
-        products: req.user.cart.items.filter((item) => item.productId), // re-use products
-        totalPrice: req.user.cart.items.reduce(
-          (sum, item) => sum + item.quantity * (item.productId?.price || 0),
-          0
-        ),
-        extraCss: ["/css/checkout.css"],
-        stripePublicKey: process.env.STRIPE_PUBLIC_KEY,
-        isAuthenticated: req.session.isLoggedIn,
-        sessionId: session.id,
-      });
-    })
-    .catch((err) => {
-      console.error("Error fetching cart:", err);
-      res.status(500).redirect("/500");
+    res.status(200).json({
+      success: true,
+      orders,
+      pagination: {
+        totalItems,
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
+      },
     });
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 };
 
-exports.getInvoice = (req, res, next) => {
-  const orderId = req.params.orderId;
+// POST /api/orders
+exports.createOrder = async (req, res) => {
+  try {
+    const user = await req.user.populate("cart.items.productId");
+    if (!user.cart.items.length)
+      return res.status(400).json({ success: false, message: "Cart empty" });
 
-  Order.findById(orderId)
-    .then((order) => {
-      if (!order) {
-        return next(new Error("No order found"));
-      }
-      if (order.user.userId.toString() !== req.user._id.toString()) {
-        return next(new Error("Unauthorized"));
-      }
+    const products = user.cart.items.map((i) => ({
+      quantity: i.quantity,
+      product: { ...i.productId._doc },
+    }));
 
-      const invoiceName = "invoice-" + orderId + ".pdf";
-      const invoicePath = path.join("data", "invoices", invoiceName);
+    const order = new Order({
+      user: { name: req.user.name, userId: req.userId },
+      products,
+    });
 
-      const pdfDoc = new PDFDocument({ margin: 50 });
+    await order.save();
+    await req.user.clearCart();
 
-      // 👉 Open inline (browser new tab) OR change to "attachment" for direct download
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="${invoiceName}"`
+    res.status(201).json({ success: true, message: "Order created", order });
+  } catch (err) {
+    console.error("Error creating order:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// GET /api/orders/:orderId/invoice
+exports.getInvoice = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "No order found" });
+    if (order.user.userId.toString() !== req.userId.toString())
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+
+    const invoiceName = `invoice-${order._id}.pdf`;
+    const invoicePath = path.join("data", "invoices", invoiceName);
+
+    const pdfDoc = new PDFDocument({ margin: 50 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
+
+    pdfDoc.pipe(fs.createWriteStream(invoicePath));
+    pdfDoc.pipe(res);
+
+    pdfDoc.fontSize(20).text("Invoice", { align: "center" });
+    pdfDoc.text(`Order ID: ${order._id}`);
+    pdfDoc.text(`Date: ${new Date().toLocaleDateString()}`);
+    pdfDoc.moveDown();
+
+    let totalPrice = 0;
+    order.products.forEach((prod) => {
+      const productTotal = prod.quantity * prod.product.price;
+      totalPrice += productTotal;
+      pdfDoc.text(
+        `${prod.product.title} - ${prod.quantity} x $${prod.product.price} = $${productTotal}`
       );
+    });
 
-      pdfDoc.pipe(fs.createWriteStream(invoicePath));
-      pdfDoc.pipe(res);
+    pdfDoc.text(`\nTotal Price: $${totalPrice}`);
+    pdfDoc.end();
+  } catch (err) {
+    console.error("Error generating invoice:", err);
+    next(err);
+  }
+};
 
-      // ---- HEADER ----
-      pdfDoc
-        .fontSize(24)
-        .fillColor("#333333")
-        .text("🧾 Order Invoice", { align: "center" });
-      pdfDoc.moveDown(0.5);
-      pdfDoc
-        .fontSize(12)
-        .fillColor("#666666")
-        .text("Invoice ID: " + orderId, { align: "center" });
-      pdfDoc.text("Date: " + new Date().toLocaleDateString(), {
-        align: "center",
-      });
-      pdfDoc.moveDown(2);
+// ---------------- Checkout (Stripe) ----------------
 
-      // ---- CUSTOMER INFO ----
-      pdfDoc
-        .fontSize(14)
-        .fillColor("#000000")
-        .text("Customer Information", { underline: true });
-      pdfDoc.moveDown(0.5);
+// POST /api/checkout
+exports.createCheckoutSession = async (req, res) => {
+  try {
+    const user = await req.user.populate("cart.items.productId");
+    const products = user.cart.items.filter((item) => item.productId);
 
-      pdfDoc.fontSize(12).text(`Name: ${order.user.name}`);
-      pdfDoc.text(`Email: ${order.user.email}`);
-      pdfDoc.moveDown(2);
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: products.map((p) => ({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: p.productId.title,
+            description: p.productId.description,
+          },
+          unit_amount: p.productId.price * 100,
+        },
+        quantity: p.quantity,
+      })),
+      mode: "payment",
+      success_url: `${req.protocol}://${req.get("host")}/api/checkout/success`,
+      cancel_url: `${req.protocol}://${req.get("host")}/api/checkout/cancel`,
+    });
 
-      // ---- ORDER DETAILS ----
-      pdfDoc
-        .fontSize(14)
-        .fillColor("#000000")
-        .text("Order Details", { underline: true });
-      pdfDoc.moveDown(1);
+    res.status(200).json({ success: true, sessionId: session.id });
+  } catch (err) {
+    console.error("Error creating checkout session:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
 
-      // Table-like header
-      pdfDoc
-        .fontSize(12)
-        .fillColor("#444444")
-        .text("Product", 50, pdfDoc.y, { continued: true })
-        .text("Qty", 250, pdfDoc.y, { continued: true })
-        .text("Price", 300, pdfDoc.y, { continued: true })
-        .text("Total", 400, pdfDoc.y);
+// GET /api/checkout/success
+exports.getCheckoutSuccess = (req, res) => {
+  res.status(200).json({ success: true, message: "Payment Successful" });
+};
 
-      pdfDoc.moveDown(0.5);
-      pdfDoc
-        .strokeColor("#aaaaaa")
-        .lineWidth(1)
-        .moveTo(50, pdfDoc.y)
-        .lineTo(550, pdfDoc.y)
-        .stroke();
-
-      let totalPrice = 0;
-      pdfDoc.moveDown(0.5);
-
-      order.products.forEach((prod) => {
-        const productTotal = prod.quantity * prod.product.price;
-        totalPrice += productTotal;
-
-        pdfDoc
-          .fontSize(12)
-          .fillColor("#000000")
-          .text(prod.product.title, 50, pdfDoc.y, { continued: true })
-          .text(prod.quantity.toString(), 250, pdfDoc.y, { continued: true })
-          .text(`$${prod.product.price.toFixed(2)}`, 300, pdfDoc.y, {
-            continued: true,
-          })
-          .text(`$${productTotal.toFixed(2)}`, 400, pdfDoc.y);
-
-        pdfDoc.moveDown(0.5);
-      });
-
-      // ---- TOTAL ----
-      pdfDoc.moveDown(1);
-      pdfDoc
-        .strokeColor("#000000")
-        .lineWidth(1)
-        .moveTo(50, pdfDoc.y)
-        .lineTo(550, pdfDoc.y)
-        .stroke();
-
-      pdfDoc
-        .fontSize(14)
-        .fillColor("#000000")
-        .text("Grand Total: $" + totalPrice.toFixed(2), 400, pdfDoc.y + 10);
-
-      // ---- FOOTER ----
-      pdfDoc.moveDown(4);
-      pdfDoc
-        .fontSize(10)
-        .fillColor("#666666")
-        .text("Thank you for your purchase!", { align: "center" });
-
-      pdfDoc.end();
-    })
-    .catch((err) => next(err));
+// GET /api/checkout/cancel
+exports.getCheckoutCancel = (req, res) => {
+  res.status(200).json({ success: false, message: "Payment Cancelled" });
 };
