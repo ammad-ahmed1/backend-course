@@ -7,12 +7,12 @@ const stripe = require("stripe")(process.env.STRIPE_PVT_KEY.trim());
 
 // ---------------- Products ----------------
 router.get("/products", shopController.getProducts);        // Get all products
-router.get("/products/:productId", shopController.getProduct); // Get single product
+router.get("/product/:productId", shopController.getProduct); // Get single product
 
 // ---------------- Cart ----------------
 router.get("/cart", isAuth, shopController.getCart);        // Get cart
 router.post("/cart", isAuth, shopController.addToCart);     // Add to cart
-router.put("/cart/:itemId", isAuth, shopController.updateCartItem); // Update item qty
+// router.put("/cart/:itemId", isAuth, shopController.updateCartItem); // Update item qty
 router.delete("/cart/:itemId", isAuth, shopController.deleteCartItem); // Remove item
 
 // ---------------- Checkout ----------------
@@ -42,7 +42,7 @@ router.get("/stripe/key", (req, res) => {
 });
 
 // ---------------- Orders ----------------
-router.post("/orders", isAuth, shopController.createOrder); // Create new order
+router.post("/order", isAuth, shopController.createOrder); // Create new order
 router.get("/orders", isAuth, shopController.getOrders);    // Get all orders
 // router.get("/orders/:orderId", isAuth, shopController.getOrder); // Get order by ID (invoice, details)
 
