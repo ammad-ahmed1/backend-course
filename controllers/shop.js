@@ -51,6 +51,7 @@ exports.getProducts = async (req, res) => {
 
 // GET /api/products/:productId
 exports.getProduct = async (req, res) => {
+  console.log(req.params.productId);
   try {
     const product = await Product.findById(req.params.productId);
     if (!product)
@@ -86,31 +87,32 @@ exports.getCart = async (req, res) => {
 // POST /api/cart
 exports.addToCart = async (req, res) => {
   try {
-    const product = await Product.findById(req.body.productId);
+    const { productId, quantity } = req.body;
+    const product = await Product.findById(productId);
+
     if (!product)
       return res
         .status(404)
         .json({ success: false, message: "Product not found" });
-
     await req.user.addToCart(product);
     res.status(201).json({ success: true, message: "Added to cart" });
   } catch (err) {
-    console.error("Error adding to cart:", err);
+    // console.error("Error adding to cart:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
 // PUT /api/cart/:itemId (update quantity)
-exports.updateCartItem = async (req, res) => {
-  try {
-    const { quantity } = req.body;
-    await req.user.updateCartItem(req.params.itemId, quantity);
-    res.status(200).json({ success: true, message: "Cart updated" });
-  } catch (err) {
-    console.error("Error updating cart item:", err);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-};
+// exports.updateCartItem = async (req, res) => {
+//   try {
+//     const { quantity } = req.body;
+//     await req.user.updateCartItem(req.params.itemId, quantity);
+//     res.status(200).json({ success: true, message: "Cart updated" });
+//   } catch (err) {
+//     console.error("Error updating cart item:", err);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
 
 // DELETE /api/cart/:itemId
 exports.deleteCartItem = async (req, res) => {
